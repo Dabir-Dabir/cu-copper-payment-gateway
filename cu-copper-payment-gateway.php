@@ -11,13 +11,23 @@ defined( 'ABSPATH' ) || exit;
 
 class CuCopperPaymentGateway {
 
+	public function __construct() {
+		$this->includes();
+		$this->set_hooks();
+	}
+
+	public function includes() {
+		include 'logs.php';
+	}
+
 	public function set_hooks() {
-		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [$this, 'cupay_erc20_add_settings_link'] );
-		add_filter( 'woocommerce_payment_gateways', [$this, 'cupay_erc20_add_gateway_class'] );
-		add_action( 'init', [$this, 'cupay_thankyou_request'] );
-		add_action( 'plugins_loaded', [$this, 'cupay_erc20_init_gateway_class'] );
+		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ $this, 'cupay_erc20_add_settings_link' ] );
+		add_filter( 'woocommerce_payment_gateways', [ $this, 'cupay_erc20_add_gateway_class' ] );
+		add_action( 'init', [ $this, 'cupay_thankyou_request' ] );
+		add_action( 'plugins_loaded', [ $this, 'init_erc20_gateway_class' ] );
 
 	}
+
 	/**
 	 * Add plugin name setting
 	 */
@@ -32,9 +42,13 @@ class CuCopperPaymentGateway {
 	 * Add a new Gateway
 	 */
 	public function cupay_erc20_add_gateway_class( $gateways ) {
-		$gateways[] = 'WC_Copper_Gateway';
+		$gateways[] = 'Cupay_WC_Copper_Gateway';
 
 		return $gateways;
+	}
+
+	public function init_erc20_gateway_class( ) {
+		include 'class-wc-copper-gateway.php';
 	}
 
 	public function cupay_get_transaction( $tx ): array {
@@ -128,10 +142,6 @@ class CuCopperPaymentGateway {
 		}
 
 	}
-
-	/*
-	 * Plug-in loading and corresponding class
-	 */
-	public function cupay_erc20_init_gateway_class() {
-	}
 }
+
+new CuCopperPaymentGateway();
