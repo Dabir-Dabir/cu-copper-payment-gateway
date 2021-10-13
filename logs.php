@@ -23,6 +23,16 @@ if ( $title ) {
 cu_log( $title );
 }
 ob_start();
+var_dump( $log_msg );
+$log_dump = ob_get_clean();
+cu_log( $log_dump, $is_error );
+}
+
+function cu_log_export( $log_msg, $title = false, $is_error = false ) {
+if ( $title ) {
+cu_log( $title );
+}
+ob_start();
 var_export( $log_msg );
 $log_dump = ob_get_clean();
 cu_log( $log_dump, $is_error );
