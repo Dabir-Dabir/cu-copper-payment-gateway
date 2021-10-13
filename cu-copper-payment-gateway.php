@@ -21,17 +21,17 @@ class CuCopperPaymentGateway {
 	}
 
 	public function set_hooks() {
-		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ $this, 'cupay_erc20_add_settings_link' ] );
-		add_filter( 'woocommerce_payment_gateways', [ $this, 'cupay_erc20_add_gateway_class' ] );
-		add_action( 'init', [ $this, 'cupay_thankyou_request' ] );
-		add_action( 'plugins_loaded', [ $this, 'init_erc20_gateway_class' ] );
+		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ $this, 'add_settings_link' ] );
+		add_filter( 'woocommerce_payment_gateways', [ $this, 'add_gateway_class' ] );
+		add_action( 'init', [ $this, 'thankyou_request' ] );
+		add_action( 'plugins_loaded', [ $this, 'init_gateway_class' ] );
 
 	}
 
 	/**
 	 * Add plugin name setting
 	 */
-	public function cupay_erc20_add_settings_link( $links ) {
+	public function add_settings_link( $links ) {
 		$settings_link = '<a href="admin.php?page=wc-settings&tab=checkout">' . __( 'Settings', 'cu-copper-payment-gateway' ) . '</a>';
 		$links[]       = $settings_link;
 
@@ -41,24 +41,24 @@ class CuCopperPaymentGateway {
 	/**
 	 * Add a new Gateway
 	 */
-	public function cupay_erc20_add_gateway_class( $gateways ) {
+	public function add_gateway_class( $gateways ) {
 		$gateways[] = 'Cupay_WC_Copper_Gateway';
 
 		return $gateways;
 	}
 
-	public function init_erc20_gateway_class( ) {
+	public function init_gateway_class() {
 		include 'class-wc-copper-gateway.php';
 	}
 
-	public function cupay_get_transaction( $tx ): array {
+	public function send_infura_request( string $method, array $params = [] ): array {
 		$api_url = "https://" . get_option( 'cu_etherium_net' ) . ".infura.io/v3/" . get_option( 'cu_infura_api_id' );
 		$ch      = curl_init( $api_url );
 		$data    = array(
 			'jsonrpc' => '2.0',
 			'id'      => 1,
-			'method'  => 'eth_getTransactionByHash',
-			'params'  => [ $tx ],
+			'method'  => $method,
+			'params'  => $params,
 		);
 		$payload = json_encode( $data );
 
@@ -70,7 +70,6 @@ class CuCopperPaymentGateway {
 		curl_close( $ch );
 
 		$res = json_decode( $result, true );
-		var_dump( $res, 'infura.io $res' );
 		if ( ! is_array( $res ) ) {
 			return array();
 		}
@@ -82,7 +81,20 @@ class CuCopperPaymentGateway {
 		return $data;
 	}
 
-	public function cupay_validate_transaction( $tx, $res ): bool {
+	public function get_transfer_data( $input ) {
+		if ( ! is_string( $input ) || strlen( $input ) !== 138 || substr( $input, 2, 8 ) !== "a9059cbb" ) {
+			return false;
+		}
+		$receiver = '0x' . substr( $input, 34, 40 );
+		$amount   = hexdec( substr( $input, 74 ) ) / 1E+18;
+
+		return [
+			'receiver' => $receiver,
+			'amount'   => $amount,
+		];
+	}
+
+	public function validate_transaction( $tx, $res ): bool {
 		if ( $tx !== $res['hash'] || get_option( 'cu_copper_contract_address' ) !== $res['to'] ) {
 			return false;
 		}
@@ -92,32 +104,57 @@ class CuCopperPaymentGateway {
 			return false;
 		}
 
+		cu_log_dump( $tx, 'Validate transaction' );
+		cu_log_dump( $res );
+
+		return true;
+	}
+
+	public function check_transaction( $tx, $order_id = 0, $data = [] ): bool {
+		/* Validate tx */
+		if ( strlen( $tx ) !== 66 || strpos( $tx, '0x' ) !== 0 ) {
+			return false;
+		}
+
+		/* Get transaction information */
+		$transaction = $this->send_infura_request( 'eth_getTransactionByHash', [ $tx ] );
+		cu_log_dump( $transaction, '$transaction' );
+		$decoded_transfer_data = $this->get_transfer_data( $transaction['input'] );
+		$receiver              = $decoded_transfer_data['receiver'];
+		$amount                = $decoded_transfer_data['amount'];
+		$symbol                = $transaction['to'];
+		$sender                = $transaction['from'];
+
+		cu_log_dump( [
+			'receiver' => $receiver,
+			'amount'   => $amount,
+			'symbol'   => $symbol,
+			'sender'   => $sender,
+		], 'output' );
+
+		$block = $this->send_infura_request( 'eth_getBlockByHash', [ $tx, false ] );
+
 		return true;
 	}
 
 	/**
 	 * Monitor the payment completion request of the plug-in
 	 */
-	public function cupay_thankyou_request() {
+	public function thankyou_request() {
 		if ( $_GET['cu'] === 'cu' ) {
-			$this->cupay_get_transaction( '0xd3c83cc78f06588ea535b164621cc26a38ceeb7d431809f45012835429d64ea4' );
+			$this->check_transaction( '0x33c941d6504485687ecfaa5c431c4bcb2aeba583bb2f080260727537e817592d' );
 		}
 		/**
 		 * Determine whether the user request is a specific path.
 		 * If the path is modified here, it should be modified in payments.js too.
 		 */
-		if ( $_POST["REQUEST_URI"] === '/hook/wc_erc20' ) {
+		if ( $_SERVER["REQUEST_URI"] === '/hook/wc_erc20' ) {
 			$data     = $_POST;
 			$order_id = $data['orderid'];
 			$tx       = $data['tx'];
 
-			var_dump( $data, 'post $data' );
-			if ( strlen( $tx ) !== 66 || strpos( $tx, '0x' ) !== 0 ) {
-				return;
-			}
-
-			$res = $this->cupay_get_transaction( $tx );
-			if ( ! $this->cupay_validate_transaction( $tx, $res ) ) {
+			$is_payed = $this->check_transaction( $tx, $order_id, $data );
+			if ( ! $is_payed ) {
 				return;
 			}
 

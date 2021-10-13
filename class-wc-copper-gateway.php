@@ -262,7 +262,5 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		foreach ( $options as [$option_name, $value] ) {
 			update_option( $option_name, $value );
 		}
-
-		cu_log_dump( '$options', 'Log works' );
 	}
 }
