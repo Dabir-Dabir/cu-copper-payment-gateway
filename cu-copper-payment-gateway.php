@@ -18,7 +18,7 @@ class CuCopperPaymentGateway {
 
 	public function includes() {
 		include 'logs.php';
-		include 'class-cupay-payment.php';
+		include 'classes/class-cupay-payment.php';
 	}
 
 	public function set_hooks() {
@@ -49,7 +49,7 @@ class CuCopperPaymentGateway {
 	}
 
 	public function init_gateway_class() {
-		include 'class-cupay-wc-copper-gateway.php';
+		include 'classes/class-cupay-wc-copper-gateway.php';
 	}
 
 	/**
