@@ -18,6 +18,7 @@ class CuCopperPaymentGateway {
 
 	public function includes() {
 		include 'logs.php';
+		include 'ajax-connect-account.php';
 		include 'classes/class-cupay-payment.php';
 	}
 
