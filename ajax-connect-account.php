@@ -1,6 +1,7 @@
 <?php
 require_once "lib/Keccak/Keccak.php";
 require_once "lib/Elliptic/EC.php";
+require_once "lib/Elliptic/Curves.php";
 
 use Elliptic\EC;
 use kornrunner\Keccak;
@@ -43,7 +44,7 @@ function verifySignature( $message, $signature, $address ): bool {
 	}
 }
 
-add_action('init', 'cupay_test_verification');
+add_action( 'init', 'cupay_test_verification' );
 function cupay_test_verification() {
 
 	if ( $_GET['cu'] !== 'test' ) {
@@ -51,13 +52,12 @@ function cupay_test_verification() {
 	}
 
 	$message   = 'Example `personal_sign` message';
-	$message   = 'a';
 	$signature = '0xf1bf495718845dce275c15708f0698400b900e392d0d158bd54597eb1feb987d44c5e0c5586e5b80f30ceadb192200b80390e0c6448e20f69c72112d5b0707f81b';
-	$publicKey = '0xd95b8691d6e84a544229a8463d7ba8d1caf0042e';
+	$address   = '0xd95b8691d6e84a544229a8463d7ba8d1caf0042e';
 
 	if ( verifySignature( $message, $signature, $address ) ) {
-		cu_log('Is verified');
+		cu_log( 'Is verified' );
 	} else {
-		cu_log('Not verified');
+		cu_log( 'Not verified' );
 	}
 }

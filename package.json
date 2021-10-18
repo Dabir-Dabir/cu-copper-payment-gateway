@@ -1,0 +1,19 @@
+{
+  "name": "php-metamask-user-login-master",
+  "version": "1.0.0",
+  "description": "Demo: https://setinblock.com/php-metamask-user-login <br> <br> ### About This is similar to CryptoKitties passwordless user login but made with PHP instead of the traditional way of doing it on Node with Express and ethereumjs-util.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@walletconnect/web3-provider": "^1.0.8",
+    "axios": "^0.23.0",
+    "evm-chains": "^0.2.0",
+    "vue": "^2.5.17",
+    "web3": "^1.6.0",
+    "web3modal": "^1.9.0"
+  }
+}
