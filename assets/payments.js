@@ -39,3 +39,47 @@ function requestPayment(token) {
         }
     });
 }
+
+async function cupayRequestSignature(message) {
+    if (window.ethereum) {
+        window.web3 = new Web3(ethereum);
+        try {
+            ethereum.enable();
+        } catch (error) {
+            console.log(error)
+        }
+
+    } else if (window.web3) {
+        window.web3 = new Web3(web3.currentProvider);
+    } else {
+        alert("Please Install Metamask at First！")
+        return;
+    }
+
+    // let address = web3.eth.coinbase;
+    // web3.personal.sign(web3.fromUtf8(message), address, console.log);
+
+    // const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    // const account = accounts[0];
+    // const signature = await ethereum.request({ method: 'personal_sign', params: [ message, account ] });
+    // console.log(signature);
+
+    let accounts = [];
+    await getAccount();
+
+    try {
+        const from = accounts[0];
+        const msg = `0x${web3.fromUtf8(message).toString('hex')}`;
+        const sign = await ethereum.request({
+            method: 'personal_sign',
+            params: [msg, from, 'Example password'],
+        });
+        console.log(sign)
+    } catch (err) {
+        console.error(err);
+    }
+
+    async function getAccount() {
+        accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    }
+}

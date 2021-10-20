@@ -9,6 +9,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
+if(!defined('CU_ABSPATH')) {
+	define('CU_ABSPATH', __DIR__);
+}
+if ( ! defined( 'CU_URL' ) ) {
+	define( "CU_URL", plugins_url( '', __FILE__ ) );
+}
+
 class CuCopperPaymentGateway {
 
 	public function __construct() {
@@ -18,7 +25,7 @@ class CuCopperPaymentGateway {
 
 	public function includes() {
 		include 'logs.php';
-		include 'ajax-connect-account.php';
+		include 'read-and-verify-signature.php';
 		include 'classes/class-cupay-payment.php';
 	}
 

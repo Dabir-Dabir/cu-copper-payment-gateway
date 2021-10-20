@@ -159,8 +159,8 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	 * Load JavaScript for payment at the front desk
 	 */
 	public function payment_scripts(): void {
-		wp_enqueue_script( 'cupay_web3', plugins_url( 'assets/web3.min.js', __FILE__ ), array( 'jquery' ), 1.1, true );
-		wp_register_script( 'cupay_payments', plugins_url( 'assets/payments.js', __FILE__ ), array(
+		wp_enqueue_script( 'cupay_web3', CU_URL . '/assets/web3.min.js', array( 'jquery' ), 1.1, true );
+		wp_register_script( 'cupay_payments', CU_URL . '/assets/payments.js', array(
 			'jquery',
 			'cupay_web3'
 		) );
@@ -227,9 +227,9 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		 * Monitor whether the order needs to be paid
 		 */
 		if ( $order->needs_payment() ) {
-			include( '../templates/pay-button.php' );
+			include CU_ABSPATH . '/templates/pay-button.php';
 		} else {
-			include( '../templates/order-payed.php' );
+			include CU_ABSPATH . '/templates/order-payed.php';
 		}
 
 	}
