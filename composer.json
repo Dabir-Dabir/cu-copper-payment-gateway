@@ -7,6 +7,8 @@
         }
     ],
     "require": {
-        "kornrunner/keccak": "^1.0"
+        "php": ">=7.1.0",
+        "kornrunner/keccak": "^1.0",
+        "ext-gmp": "*"
     }
 }

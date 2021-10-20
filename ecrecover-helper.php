@@ -1,8 +1,8 @@
 <?php
-require_once './CryptoCurrencyPHP/PointMathGMP.class.php';
-require_once './CryptoCurrencyPHP/SECp256k1.class.php';
-require_once './CryptoCurrencyPHP/Signature.class.php';
-require_once './vendor/autoload.php';
+require_once 'CryptoCurrencyPHP/PointMathGMP.class.php';
+require_once 'CryptoCurrencyPHP/SECp256k1.class.php';
+require_once 'CryptoCurrencyPHP/Signature.class.php';
+require_once 'vendor/autoload.php';
 use kornrunner\Keccak;
 
 function personal_ecRecover($msg, $signed) {
