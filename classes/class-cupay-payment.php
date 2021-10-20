@@ -2,6 +2,7 @@
 defined( 'ABSPATH' ) || exit;
 
 class Cupay_Payment {
+	public string $erc20_method = "a9059cbb";
 	public function send_infura_request( string $method, array $params = [] ) {
 		$api_url = "https://" . get_option( 'cu_etherium_net' ) . ".infura.io/v3/" . get_option( 'cu_infura_api_id' );
 		$ch      = curl_init( $api_url );
@@ -32,8 +33,8 @@ class Cupay_Payment {
 		return $data;
 	}
 
-	public function get_transfer_data( $input ) {
-		if ( ! is_string( $input ) || strlen( $input ) !== 138 || substr( $input, 2, 8 ) !== "a9059cbb" ) {
+	public function get_data_from_transfer_input( $input ) {
+		if ( ! is_string( $input ) || strlen( $input ) !== 138 || substr( $input, 2, 8 ) !== $this->erc20_method ) {
 			return false;
 		}
 		$receiver = '0x' . substr( $input, 34, 40 );
@@ -44,6 +45,13 @@ class Cupay_Payment {
 			'amount'   => $amount,
 		];
 	}
+
+	public function get_data_for_transfer_input( $amount ) {
+		$amount = $amount * 1E+18;
+		$amount_hash = dechex($amount);
+		return '0x' . $this->erc20_method . get_option('') . $amount_hash;
+	}
+
 
 	public function validate_transaction( $data, $order_id ): bool {
 		if ( strtolower( $data['symbol'] ) !== strtolower( get_option( 'cu_copper_contract_address' ) ) || strtolower( $data['receiver'] ) !== strtolower( get_option( 'cu_copper_target_address' ) ) ) {
@@ -74,7 +82,7 @@ class Cupay_Payment {
 		if ( $transaction === false ) {
 			return false;
 		}
-		$decoded_transfer_data = $this->get_transfer_data( $transaction['input'] );
+		$decoded_transfer_data = $this->get_data_from_transfer_input( $transaction['input'] );
 		if ( $decoded_transfer_data === false ) {
 			return false;
 		}

@@ -1,10 +1,5 @@
 function requestPayment(token) {
     if (window.ethereum) {
-        // To be removed
-        console.log('ethereum provider');
-        // web3 = new Web3(web3.currentProvider);
-        // END To be removed
-
         window.web3 = new Web3(ethereum);
         try {
             ethereum.enable();
@@ -13,9 +8,7 @@ function requestPayment(token) {
         }
 
     } else if (window.web3) {
-        console.log('web3 provider');
-        console.log('web3 provider');
-        web3 = new Web3(web3.currentProvider);
+        window.web3 = new Web3(web3.currentProvider);
     } else {
         alert("Please Install Metamask at First！")
         return;

@@ -227,21 +227,11 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		 * Monitor whether the order needs to be paid
 		 */
 		if ( $order->needs_payment() ) {
-			/**
-			 * If payment is required, the order information will be output.
-			 */
-			echo '<script>var order_id = ' . $order_id . ';var contract_address = "' . (string) $this->contract_address . '";var abiArray = ' . $this->abi_array . '; var target_address = "' . $this->target_address . '"; </script>';
-			echo __( '<h2 class="h2thanks">Use Metamask to Pay this Order</h2>', 'cu-copper-payment-gateway' );
-			echo __( 'Click Button Below, Pay this order.<br>', 'cu-copper-payment-gateway' );
-			echo '<span style="margin:5px 0px;">' . $this->gas_notice . "</span><br>";
-			echo '<div><button onclick="requestPayment(' . (string) $order->get_total() . ')">' . __( 'Open Metamask', 'cu-copper-payment-gateway' ) . '</button></div>';
-
+			include( '../templates/pay-button.php' );
 		} else {
-			/**
-			 * No need to pay means no need to Order is already Payed.
-			 */
-			echo __( '<h2>Your Order is already Payed.</h2>', 'cu-copper-payment-gateway' );
+			include( '../templates/order-payed.php' );
 		}
+
 	}
 
 	public function save_fields() {
