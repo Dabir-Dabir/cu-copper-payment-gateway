@@ -59,13 +59,18 @@ function cupay_test_verification() {
 	$signature = '0x504af5495bfc76f61192b48aaaa76992c15102623aa3a625d12c17cc3f9659720cae1f7f26ab875800e746b25a4be84758fe4eaa8f5e5b0f8c040ffecb1722171c';
 	$address   = '0x158bd234c1a42e926b7004e162199444e09ec40a';
 
-	$message   = 'Example `personal_sign` message4';
-	$signature = '0x7e6d24077ae9d94635b1420ac2fdda65ce1aa68b1673f8330dad04668fc1121430de4e3bac675d2c22e5f4816b29b2b54dcfbe2e2cd320befd937c039d09f7a11b';
-	$address   = '0x158bd234c1a42e926b7004e162199444e09ec40a';
+	// $message   = 'Example `personal_sign` message4';
+	// $signature = '0x7e6d24077ae9d94635b1420ac2fdda65ce1aa68b1673f8330dad04668fc1121430de4e3bac675d2c22e5f4816b29b2b54dcfbe2e2cd320befd937c039d09f7a11b';
+	// $address   = '0x158bd234c1a42e926b7004e162199444e09ec40a';
+	//
+	// if ( verifySignature( $message, $signature, $address ) ) {
+	// 	cu_log( 'Is verified' );
+	// } else {
+	// 	cu_log( 'Not verified' );
+	// }
 
-	if ( verifySignature( $message, $signature, $address ) ) {
-		cu_log( 'Is verified' );
-	} else {
-		cu_log( 'Not verified' );
-	}
+	$presha_str = hex2bin(substr(keccak256('string Messageuint32 A number'), 2) . substr(keccak256('Hi, Alice!'. pack('N', 1337)), 2));
+	$hex = keccak256($presha_str);
+	$signed = '0x5147f94643843d709bf7c374fb8d619b27da739413f7ab8de5c788a6b7d2d10e53c4789d8a0398dee6c9f6cb69e094fa801cc00fa4d19f3b71b03a7a4b7cfee11c';
+	cu_log(ecRecover($hex, $signed), "\n");
 }

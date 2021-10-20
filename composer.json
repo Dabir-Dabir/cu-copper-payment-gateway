@@ -1,0 +1,12 @@
+{
+    "name": "lado/cu-copper-payment-gateway",
+    "authors": [
+        {
+            "name": "Lado",
+            "email": "lado.mikiashvili@gmail.com"
+        }
+    ],
+    "require": {
+        "kornrunner/keccak": "^1.0"
+    }
+}
