@@ -1,85 +1,76 @@
-function requestPayment(token) {
+async function cupayRequestSignature({orderId, paymentAmount, gasLimit, contractAddress, targetAddress, abiArray}) {
     if (window.ethereum) {
         window.web3 = new Web3(ethereum);
         try {
-            ethereum.enable();
+            await ethereum.enable();
         } catch (error) {
-            console.log(error)
+            document.getElementById('metamask-messages').innerHtml = "Error occured when opening Metamask" + error
         }
-
     } else if (window.web3) {
         window.web3 = new Web3(web3.currentProvider);
     } else {
-        alert("Please Install Metamask at First！")
-        return;
+        document.getElementById('metamask-messages').innerHtml = 'Please download and install Metamask: <a href="https://metamask.io/">https://metamask.io/</a>'
     }
 
-    var formData = new FormData();
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function () {
-        if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-            location.reload();
-        }
-    }
-    var erc_contract = web3.eth.contract(abiArray);
-    var erc_contract_instance = erc_contract.at(contract_address);
-    // console.log('Target wallet:', target_address);
-    // console.log('Contract address', contract_address);
-    erc_contract_instance.transfer(target_address, token * 10e17, function (error, result) {
-        // console.log('Transfer error:');
-        // console.log(error);
-        // console.log('Transfer result:');
-        // console.log(result);
-        if (error === null && result !== null) {
-            console.log("Transaction complete", result);
-            formData.append('orderid', order_id);
-            formData.append('tx', result);
-            xmlhttp.open("POST", "/hook/wc_erc20", true);
-            xmlhttp.send(formData);
-        }
+    const accounts = await ethereum.request({method: 'eth_requestAccounts'});
+    console.log('accounts');
+    console.log(accounts);
+    const fromAddress = accounts[0];
+    console.log('fromAddress');
+    console.log(fromAddress);
+
+    let amount = paymentAmount * 1E+18
+    let input = '0xa9059cbb' + targetAddress.substring(2) + amount.toString(16);
+    const tx = JSON.stringify({
+        from: fromAddress,
+        to: contractAddress,
+        gas: gasLimit,
+        value: '0x00',
+        data: input
     });
-}
-
-async function cupayRequestSignature(message) {
-    if (window.ethereum) {
-        window.web3 = new Web3(ethereum);
-        try {
-            ethereum.enable();
-        } catch (error) {
-            console.log(error)
+    const data = JSON.stringify({
+        nonce: '0x00',
+        gasPrice: '0x09184e72a000',
+        gasLimit: '0x2710',
+        to: '0x0000000000000000000000000000000000000000',
+        value: '0x00',
+        data: '0x7f7465737432000000000000000000000000000000000000000000000000000000600057',
+    });
+    // web3.personal.sign(web3.toHex(data), fromAddress, function (err,signature) {
+    //     if (err){
+    //         console.error(err);
+    //     }
+    //     console.log('signature');
+    //     console.log(signature);
+    // });
+    web3.eth.signTransaction({
+        to: contractAddress,
+        value: web3.toWei(5, 'ether')
+    }, (err, transactionId) => {
+        if  (err) {
+            console.log('Payment failed', err)
+            $('#status').html('Payment failed')
+        } else {
+            console.log('Payment successful', transactionId)
+            $('#status').html('Payment successful')
         }
+    })
 
-    } else if (window.web3) {
-        window.web3 = new Web3(web3.currentProvider);
-    } else {
-        alert("Please Install Metamask at First！")
-        return;
-    }
+    // try {
+    //     const sign = await ethereum.request({
+    //         method: 'personal_sign',
+    //         params: [data, fromAddress],
+    //     });
+    //     console.log('sign');
+    //     console.log(sign);
+    // } catch (err) {
+    //     console.error(err);
+    // }
+    // web3.eth.accounts.signTransaction(tx, privateKey).then(signed => {
+    //     console.log(signed);
+    // });
+    // const transaction = new EthereumTx(tx);
+    // transaction.sign(Buffer.from(pk, ‘hex’))
+    // let rawdata = ‘0x’ + transaction.serialize().toString(‘hex’);
 
-    // let address = web3.eth.coinbase;
-    // web3.personal.sign(web3.fromUtf8(message), address, console.log);
-
-    // const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    // const account = accounts[0];
-    // const signature = await ethereum.request({ method: 'personal_sign', params: [ message, account ] });
-    // console.log(signature);
-
-    let accounts = [];
-    await getAccount();
-
-    try {
-        const from = accounts[0];
-        const msg = `0x${web3.fromUtf8(message).toString('hex')}`;
-        const sign = await ethereum.request({
-            method: 'personal_sign',
-            params: [msg, from, 'Example password'],
-        });
-        console.log(sign)
-    } catch (err) {
-        console.error(err);
-    }
-
-    async function getAccount() {
-        accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    }
 }

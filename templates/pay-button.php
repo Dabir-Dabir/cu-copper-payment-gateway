@@ -1,16 +1,18 @@
 <script>
-    var order_id = <?= $order_id ?>;
-    var contract_address = "<?= (string) $this->contract_address ?>";
-    var abiArray = <?= $this->abi_array ?>;
-    var target_address = "<?= $this->target_address ?>";
-    let message = 'Example `personal_sign` message4';
+    var cuDataForSign = {
+        "orderId": <?= $order_id ?>,
+        "paymentAmount": <?= $payment_amount ?>,
+        "contractAddress": "<?= get_option('cu_copper_contract_address') ?>",
+        "targetAddress": "<?= get_option('cu_copper_target_address') ?>",
+        "gasLimit": <?= get_option('cu_copper_gas_limit', 1000) ?>,
+        "abiArray": <?= get_option('cu_copper_abi_array') ?>
+    }
+    console.log('cuDataForSign');
+    console.log(cuDataForSign);
 </script>
-<h2 class="h2thanks"><?= __( 'Use Metamask to Pay this Order', 'cu-copper-payment-gateway' ) ?></h2>
-<?= __( 'Click Button Below, Pay this order.', 'cu-copper-payment-gateway' ) ?><br>
-<span style="margin:5px 0px;"><?= $this->gas_notice ?></span><br>
+<h2 class="h2thanks"><?= __( 'Use Metamask to Sing this Order Transaction', 'cu-copper-payment-gateway' ) ?></h2>
+<span><?= $this->gas_notice ?></span><br>
+<div id="metamask-messages"></div>
 <div>
-    <button onclick="requestPayment(<?= (string) $order->get_total() ?>)"><?= __( 'Open Metamask', 'cu-copper-payment-gateway' ) ?></button>
-</div>
-<div>
-    <button onclick="cupayRequestSignature(message)"><?= __( 'Sign the Transaction', 'cu-copper-payment-gateway' ) ?></button>
+    <button onclick="cupayRequestSignature(cuDataForSign)"><?= __( 'Sign the Transaction', 'cu-copper-payment-gateway' ) ?></button>
 </div>
