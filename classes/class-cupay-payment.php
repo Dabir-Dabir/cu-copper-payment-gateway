@@ -46,7 +46,7 @@ class Cupay_Payment {
 		];
 	}
 
-	public function get_data_for_transfer_input( $amount ) {
+	public function get_data_for_transfer_input( $amount ):string {
 		$amount = $amount * 1E+18;
 		$amount_hash = dechex($amount);
 		return '0x' . $this->erc20_method . get_option('') . $amount_hash;

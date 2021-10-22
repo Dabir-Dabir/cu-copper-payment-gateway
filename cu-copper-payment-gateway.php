@@ -64,7 +64,7 @@ class CuCopperPaymentGateway {
 	 * Monitor the payment completion request of the plug-in
 	 */
 	public function thankyou_request() {
-		if ( $_GET['cu'] === 'cu' ) {
+		if ( isset($_GET['cu']) && $_GET['cu'] === 'cu' ) {
 			( new Cupay_Payment )->check_transaction( '0xfdb734ba4383d7fd801d6083815aa29cb08f9adcb291abfbd21f05f283cc6bc2', 44 );
 		}
 		/**

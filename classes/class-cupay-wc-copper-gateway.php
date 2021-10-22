@@ -110,6 +110,12 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 				'description' => __( 'Tell to the customer to set a high gas price for speed up transaction.', 'cu-copper-payment-gateway' ),
 				'desc_tip'    => true,
 			),
+			'gas_limit'              => array(
+				'title'       => __( 'Gas Limit', 'cu-copper-payment-gateway' ),
+				'type'        => 'number',
+				'default'     => 1000,
+				'description' => __( 'Default gas limit, customer should change it.', 'cu-copper-payment-gateway' ),
+			),
 			'gen_title'        => array(
 				'title' => __( 'General', 'cu-copper-payment-gateway' ),
 				'type'  => 'title',
@@ -231,6 +237,7 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		}
 
 		$order = wc_get_order( $order_id );
+		$payment_amount = (float) $order->get_total();
 		/**
 		 * Monitor whether the order needs to be paid
 		 */
@@ -251,6 +258,7 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 			[ 'cu_copper_target_address', $this->target_address ],
 			[ 'cu_copper_contract_address', $this->contract_address ],
 			[ 'cu_copper_abi_array', $this->abi_array ],
+			[ 'cu_copper_gas_limit', $this->gas_limit ],
 			[ 'cu_etherium_net', $this->net ],
 			[ 'cu_infura_api_id', $this->api_id ],
 			[ 'cu_infura_api_secret', $this->api_secret ],
