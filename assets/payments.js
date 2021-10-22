@@ -1,4 +1,4 @@
-function requestPayment(token) {
+function cupayRequestPayment(token) {
     if (window.ethereum) {
         window.web3 = new Web3(ethereum);
         try {
@@ -40,7 +40,7 @@ function requestPayment(token) {
     });
 }
 
-async function cupayRequestSignature(message) {
+async function cupayRequestSignature(message, $user_id) {
     if (window.ethereum) {
         window.web3 = new Web3(ethereum);
         try {
@@ -56,30 +56,32 @@ async function cupayRequestSignature(message) {
         return;
     }
 
-    // let address = web3.eth.coinbase;
-    // web3.personal.sign(web3.fromUtf8(message), address, console.log);
-
-    // const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    // const account = accounts[0];
-    // const signature = await ethereum.request({ method: 'personal_sign', params: [ message, account ] });
-    // console.log(signature);
-
-    let accounts = [];
-    await getAccount();
-
+    let accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    let from;
+    let sign;
     try {
-        const from = accounts[0];
+        from = accounts[0];
         const msg = `0x${web3.fromUtf8(message).toString('hex')}`;
-        const sign = await ethereum.request({
+        sign = await ethereum.request({
             method: 'personal_sign',
-            params: [msg, from, 'Example password'],
+            params: [message, from],
         });
         console.log(sign)
     } catch (err) {
         console.error(err);
+        return;
     }
 
-    async function getAccount() {
-        accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    }
+    const data = {
+        'action': 'cu_add_eth_address_to_account',
+        'sign': sign,
+        'sender': from,
+        'security': cuSecurity
+    };
+
+    let ajaxurl = "/wp-admin/admin-ajax.php";
+    // since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
+    jQuery.post(ajaxurl, data, function(response) {
+        alert('Got this from the server: ' + response);
+    });
 }

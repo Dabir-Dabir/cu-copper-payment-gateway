@@ -35,7 +35,6 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		}
 
 
-
 		$this->save_fields();
 		$this->set_hooks();
 
@@ -56,11 +55,14 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		/**
 		 * Hooks
 		 */
-		add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
-		add_action('wp_enqueue_scripts', array($this, 'payment_scripts'));
-		add_action('woocommerce_api_compete', array($this, 'webhook'));
-		add_action('admin_notices', array($this, 'do_ssl_check'));
-		add_action('woocommerce_thankyou', array($this, 'thankyou_page'));
+		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array(
+			$this,
+			'process_admin_options'
+		) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'payment_scripts' ) );
+		add_action( 'woocommerce_api_compete', array( $this, 'webhook' ) );
+		add_action( 'admin_notices', array( $this, 'do_ssl_check' ) );
+		add_action( 'woocommerce_thankyou', array( $this, 'thankyou_page' ) );
 
 	}
 
@@ -191,6 +193,12 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		 * Empty shopping cart
 		 */
 		WC()->cart->empty_cart();
+
+		$customer = $order->get_user();
+
+		if ( $customer && get_user_meta( $customer->ID, 'cu_eth_token', true ) == '' ) {
+			update_user_meta( $customer->ID, 'cu_eth_token', wp_generate_password(6, false));
+		}
 
 		/**
 		 * The payment is successful, enter the 'Thank You' page.

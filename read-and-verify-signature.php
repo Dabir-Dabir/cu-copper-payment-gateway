@@ -44,28 +44,58 @@ function verifySignature( $message, $signature, $address ): bool {
 	}
 }
 
-add_action( 'init', 'cupay_test_verification' );
-function cupay_test_verification() {
+add_action( 'wp_ajax_cu_add_eth_address_to_account', 'cu_add_eth_address_to_account' );
+function cu_add_eth_address_to_account() {
+	if ( check_ajax_referer( 'cu_security', 'security' ) !== 1 ) {
+		$response = [
+			"action" => 'cu_add_eth_address_to_account',
+			"done"   => false,
+			"error"  => __( 'Weak security!', 'cu-copper-payment-gateway' ),
+		];
 
-	if ( $_GET['cu'] !== 'test' ) {
-		return;
+		echo json_encode( $response );
+		die;
 	}
 
-	$message   = 'Example `personal_sign` message';
-	$signature = '0xf1bf495718845dce275c15708f0698400b900e392d0d158bd54597eb1feb987d44c5e0c5586e5b80f30ceadb192200b80390e0c6448e20f69c72112d5b0707f81b';
-	$address   = '0xd95b8691d6e84a544229a8463d7ba8d1caf0042e';
+	$user_id        = get_current_user_id();
+	$message        = get_user_meta( $user_id, 'cu_eth_token', true );
+	$sign           = sanitize_text_field( $_POST['sign'] );
+	$sender_address = sanitize_text_field( $_POST['sender'] );
+	if ( ! verifySignature( $message, $sign, $sender_address ) ) {
+		$response = [
+			"action" => 'cu_add_eth_address_to_account',
+			"done"   => false,
+			"error"  => __( 'Incorrect signature!', 'cu-copper-payment-gateway' ),
+		];
 
-	$message   = 'Example `personal_sign` message';
-	$signature = '0x504af5495bfc76f61192b48aaaa76992c15102623aa3a625d12c17cc3f9659720cae1f7f26ab875800e746b25a4be84758fe4eaa8f5e5b0f8c040ffecb1722171c';
-	$address   = '0x158bd234c1a42e926b7004e162199444e09ec40a';
-
-	$message   = 'Example `personal_sign` message4';
-	$signature = '0x7e6d24077ae9d94635b1420ac2fdda65ce1aa68b1673f8330dad04668fc1121430de4e3bac675d2c22e5f4816b29b2b54dcfbe2e2cd320befd937c039d09f7a11b';
-	$address   = '0x158bd234c1a42e926b7004e162199444e09ec40a';
-
-	if ( verifySignature( $message, $signature, $address ) ) {
-		cu_log( 'Is verified' );
-	} else {
-		cu_log( 'Not verified' );
+		echo json_encode( $response );
+		die;
 	}
+
+	$user_addresses = get_user_meta( $user_id, 'cu_eth_addresses' );
+	if ( ! is_array( $user_addresses ) ) {
+		$user_addresses = [];
+	}
+	$user_addresses[] = $sender_address;
+	$user_addresses_updated = update_user_meta( $user_id, 'cu_eth_addresses', $user_addresses );
+	if(!$user_addresses_updated) {
+		$response = [
+			"action" => 'cu_add_eth_address_to_account',
+			"done"   => false,
+			"error"  => __( 'Internal error!', 'cu-copper-payment-gateway' ),
+		];
+
+		echo json_encode( $response );
+		die;
+	}
+
+	$response = [
+		"action"  => 'cu_add_eth_address_to_account',
+		"done"    => true,
+		"success" => __( 'Account added!', 'cu-copper-payment-gateway' ),
+		"account" => $sender_address
+	];
+
+	echo json_encode( $response );
+	die;
 }
