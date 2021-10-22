@@ -168,10 +168,15 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	 */
 	public function payment_scripts(): void {
 		wp_enqueue_script( 'cupay_web3', CU_URL . '/assets/web3.min.js', array( 'jquery' ), 1.1, true );
+		wp_register_script( 'cupay_eth_addresses_connection', CU_URL . '/assets/eth-addresses-connection.js', array(
+			'jquery',
+			'cupay_web3'
+		) );
 		wp_register_script( 'cupay_payments', CU_URL . '/assets/payments.js', array(
 			'jquery',
 			'cupay_web3'
 		) );
+		wp_enqueue_script( 'cupay_eth_addresses_connection' );
 		wp_enqueue_script( 'cupay_payments' );
 	}
 
@@ -242,6 +247,7 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		 * Monitor whether the order needs to be paid
 		 */
 		if ( $order->needs_payment() ) {
+			include CU_ABSPATH . '/templates/eth-addresses-connection.php';
 			include CU_ABSPATH . '/templates/pay-button.php';
 		} else {
 			include CU_ABSPATH . '/templates/order-payed.php';
