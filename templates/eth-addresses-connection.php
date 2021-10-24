@@ -17,7 +17,7 @@
 
 </script>
 <div id="cu-connected-addresses" class="cu-connected-addresses">
-    <h3 class="cu-connected-addresses__title"><?= __( 'Connected addresses', 'cu-copper-payment-gateway' ) ?></h3>
+    <h3 class="cu-connected-addresses__title"><?= __( 'Bonded addresses', 'cu-copper-payment-gateway' ) ?></h3>
 
 	<?php if ( is_array( $cu_addresses ) && count( $cu_addresses ) > 0 ) : ?>
         <ul class="cu-connected-addresses__list">

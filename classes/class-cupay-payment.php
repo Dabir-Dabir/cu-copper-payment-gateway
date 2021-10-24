@@ -3,6 +3,8 @@ defined( 'ABSPATH' ) || exit;
 
 class Cupay_Payment {
 	public string $erc20_method = "a9059cbb";
+	public string $error;
+
 	public function send_infura_request( string $method, array $params = [] ) {
 		$api_url = "https://" . get_option( 'cu_etherium_net' ) . ".infura.io/v3/" . get_option( 'cu_infura_api_id' );
 		$ch      = curl_init( $api_url );
@@ -74,6 +76,7 @@ class Cupay_Payment {
 	public function check_transaction( $tx, $order_id = 0, $data = [] ): bool {
 		/* Validate tx */
 		if ( strlen( $tx ) !== 66 || strpos( $tx, '0x' ) !== 0 ) {
+			$this->error = __( 'Incorrect TX', 'cu-copper-payment-gateway' );
 			return false;
 		}
 

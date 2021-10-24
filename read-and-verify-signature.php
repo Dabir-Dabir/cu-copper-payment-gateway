@@ -86,7 +86,7 @@ function cupay_add_eth_address_to_account() {
 		echo json_encode( $response );
 		die;
 	}
-	$user_addresses[] = $sender_address;
+	$user_addresses[]       = $sender_address;
 	$user_addresses_updated = update_user_meta( $user_id, 'cu_eth_addresses', $user_addresses );
 	if ( ! $user_addresses_updated ) {
 		$response = [
@@ -141,7 +141,7 @@ function cupay_cu_remove_eth_address_from_account() {
 		echo json_encode( $response );
 		die;
 	}
-	unset( $user_addresses[ array_search('$address', $user_addresses) ] );
+	unset( $user_addresses[ array_search( '$address', $user_addresses ) ] );
 	$user_addresses_updated = update_user_meta( $user_id, 'cu_eth_addresses', $user_addresses );
 	if ( ! $user_addresses_updated ) {
 		$response = [
@@ -159,6 +159,47 @@ function cupay_cu_remove_eth_address_from_account() {
 		"done"    => true,
 		"success" => __( 'Account removed!', 'cu-copper-payment-gateway' ),
 		"account" => $address
+	];
+
+	echo json_encode( $response );
+	die;
+}
+
+add_action( 'wp_ajax_cu_check_transaction', 'cupay_cu_check_transaction' );
+function cupay_cu_check_transaction() {
+	if ( check_ajax_referer( 'cu_security', 'security' ) !== 1 ) {
+		$response = [
+			"action" => 'cu_check_transaction',
+			"done"   => false,
+			"error"  => __( 'Weak security!', 'cu-copper-payment-gateway' ),
+		];
+
+		echo json_encode( $response );
+		die;
+	}
+
+	$order_id = sanitize_text_field( $_POST['order_id'] );
+	$tx       = sanitize_text_field( $_POST['tx'] );
+
+	$payment = new Cupay_Payment();
+	if ( ! $payment->check_transaction( $tx, $order_id ) ) {
+		$response = [
+			"action" => 'cu_check_transaction',
+			"done"   => false,
+			"error"  => __( 'Unknown error!', 'cu-copper-payment-gateway' ),
+		];
+		if ( $payment->error ) {
+			$response["error"] = $payment->error;
+		}
+
+		echo json_encode( $response );
+		die;
+	}
+
+	$response = [
+		"action"  => 'cu_check_transaction',
+		"done"    => true,
+		"success" => __( 'Account removed!', 'cu-copper-payment-gateway' ),
 	];
 
 	echo json_encode( $response );
