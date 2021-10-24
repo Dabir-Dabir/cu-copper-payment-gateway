@@ -10,11 +10,11 @@ use kornrunner\Keccak;
 /**
  * @throws Exception
  */
-function pubKeyToAddress( $pubkey ): string {
+function cupay_pub_key_to_address( $pubkey ): string {
 	return "0x" . substr( Keccak::hash( substr( hex2bin( $pubkey->encode( "hex" ) ), 1 ), 256 ), 24 );
 }
 
-function verifySignature( $message, $signature, $address ): bool {
+function cupay_verify_signature( $message, $signature, $address ): bool {
 	$msglen = strlen( $message );
 	try {
 		$hash = Keccak::hash( "\x19Ethereum Signed Message:\n{$msglen}{$message}", 256 );
@@ -38,14 +38,14 @@ function verifySignature( $message, $signature, $address ): bool {
 	}
 
 	try {
-		return $address == pubKeyToAddress( $pubkey );
+		return $address == cupay_pub_key_to_address( $pubkey );
 	} catch ( Exception $e ) {
 		return false;
 	}
 }
 
-add_action( 'wp_ajax_cu_add_eth_address_to_account', 'cu_add_eth_address_to_account' );
-function cu_add_eth_address_to_account() {
+add_action( 'wp_ajax_cu_add_eth_address_to_account', 'cupay_add_eth_address_to_account' );
+function cupay_add_eth_address_to_account() {
 	if ( check_ajax_referer( 'cu_security', 'security' ) !== 1 ) {
 		$response = [
 			"action" => 'cu_add_eth_address_to_account',
@@ -61,7 +61,7 @@ function cu_add_eth_address_to_account() {
 	$message        = get_user_meta( $user_id, 'cu_eth_token', true );
 	$sign           = sanitize_text_field( $_POST['sign'] );
 	$sender_address = sanitize_text_field( $_POST['sender'] );
-	if ( ! verifySignature( $message, $sign, $sender_address ) ) {
+	if ( ! cupay_verify_signature( $message, $sign, $sender_address ) ) {
 		$response = [
 			"action" => 'cu_add_eth_address_to_account',
 			"done"   => false,
@@ -76,9 +76,19 @@ function cu_add_eth_address_to_account() {
 	if ( ! is_array( $user_addresses ) ) {
 		$user_addresses = [];
 	}
-	$user_addresses[] = $sender_address;
+	if ( in_array( $sender_address, $user_addresses ) ) {
+		$response = [
+			"action" => 'cu_add_eth_address_to_account',
+			"done"   => false,
+			"error"  => __( 'Already added!', 'cu-copper-payment-gateway' ),
+		];
+
+		echo json_encode( $response );
+		die;
+	}
+	array_push( $user_addresses, $sender_address );
 	$user_addresses_updated = update_user_meta( $user_id, 'cu_eth_addresses', $user_addresses );
-	if(!$user_addresses_updated) {
+	if ( ! $user_addresses_updated ) {
 		$response = [
 			"action" => 'cu_add_eth_address_to_account',
 			"done"   => false,
