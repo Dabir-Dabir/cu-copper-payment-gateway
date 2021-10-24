@@ -72,7 +72,7 @@ function cupay_add_eth_address_to_account() {
 		die;
 	}
 
-	$user_addresses = get_user_meta( $user_id, 'cu_eth_addresses' );
+	$user_addresses = get_user_meta( $user_id, 'cu_eth_addresses', true );
 	if ( ! is_array( $user_addresses ) ) {
 		$user_addresses = [];
 	}
@@ -86,7 +86,7 @@ function cupay_add_eth_address_to_account() {
 		echo json_encode( $response );
 		die;
 	}
-	array_push( $user_addresses, $sender_address );
+	$user_addresses[] = $sender_address;
 	$user_addresses_updated = update_user_meta( $user_id, 'cu_eth_addresses', $user_addresses );
 	if ( ! $user_addresses_updated ) {
 		$response = [
@@ -104,6 +104,61 @@ function cupay_add_eth_address_to_account() {
 		"done"    => true,
 		"success" => __( 'Account added!', 'cu-copper-payment-gateway' ),
 		"account" => $sender_address
+	];
+
+	echo json_encode( $response );
+	die;
+}
+
+// add_action('init', function() {
+// 	update_user_meta( 2, 'cu_eth_addresses', '' );
+// });
+
+add_action( 'wp_ajax_cu_remove_eth_address_from_account', 'cupay_cu_remove_eth_address_from_account' );
+function cupay_cu_remove_eth_address_from_account() {
+	if ( check_ajax_referer( 'cu_security', 'security' ) !== 1 ) {
+		$response = [
+			"action" => 'cu_remove_eth_address_from_account',
+			"done"   => false,
+			"error"  => __( 'Weak security!', 'cu-copper-payment-gateway' ),
+		];
+
+		echo json_encode( $response );
+		die;
+	}
+
+	$user_id = get_current_user_id();
+	$address = sanitize_text_field( $_POST['address'] );
+
+	$user_addresses = get_user_meta( $user_id, 'cu_eth_addresses', true );
+	if ( ! is_array( $user_addresses ) || ! in_array( $address, $user_addresses ) ) {
+		$response = [
+			"action" => 'cu_remove_eth_address_from_account',
+			"done"   => false,
+			"error"  => __( 'Didn\'t exist!', 'cu-copper-payment-gateway' ),
+		];
+
+		echo json_encode( $response );
+		die;
+	}
+	unset( $user_addresses[ array_search('$address', $user_addresses) ] );
+	$user_addresses_updated = update_user_meta( $user_id, 'cu_eth_addresses', $user_addresses );
+	if ( ! $user_addresses_updated ) {
+		$response = [
+			"action" => 'cu_remove_eth_address_from_account',
+			"done"   => false,
+			"error"  => __( 'Internal error!', 'cu-copper-payment-gateway' ),
+		];
+
+		echo json_encode( $response );
+		die;
+	}
+
+	$response = [
+		"action"  => 'cu_remove_eth_address_from_account',
+		"done"    => true,
+		"success" => __( 'Account removed!', 'cu-copper-payment-gateway' ),
+		"account" => $address
 	];
 
 	echo json_encode( $response );
