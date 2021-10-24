@@ -77,15 +77,26 @@ function cupayHandleRequestSignatureResponse(data, displayMessages) {
     let deleteButton = document.createElement('button')
     deleteButton.classList.add('cu-connected-addresses__delete-button');
     deleteButton.onclick = function() {
-        cupayRemoveAddress(data['account']);
+        cupayRemoveAddress(data['account'], displayMessages);
     }
     deleteButton.innerHTML = 'X';
     listItem.append(deleteButton);
 
-    connectedAddressesList.append(listItem);
+    if(cuAddresses.length > 0) {
+        connectedAddressesList.append(listItem);
+    } else {
+        const node = document.getElementsByClassName('cu-connected-addresses__empty')[0];
+        node.parentNode.removeChild(node);
+
+        let list = document.createElement('ul')
+        list.classList.add('cu-connected-addresses__list');
+
+        list.append(listItem);
+        connectedAddresses.append(list);
+    }
 }
 
-async function cupayRemoveAddress(address) {
+async function cupayRemoveAddress(address, displayMessages) {
     const data = {
         'action': 'cu_remove_eth_address_from_account',
         'address': address,
@@ -94,13 +105,14 @@ async function cupayRemoveAddress(address) {
 
     let ajaxurl = "/wp-admin/admin-ajax.php";
     jQuery.post(ajaxurl, data, function (response) {
-        cupayHandleRemoveAddressResponse(JSON.parse(response));
+        cupayHandleRemoveAddressResponse(JSON.parse(response), displayMessages);
     });
 }
 
 
 
-function cupayHandleRemoveAddressResponse(data) {
+function cupayHandleRemoveAddressResponse(data, displayMessages) {
+    let connectedAddressesElement = document.getElementById('cu-connected-addresses');
     let logsElement = document.getElementById('cu-logs');
     let connectedAddressesList = document.getElementsByClassName('cu-connected-addresses__list')[0];
 
@@ -123,4 +135,18 @@ function cupayHandleRemoveAddressResponse(data) {
     let nodeId = 'cu-address-' + data['account'];
     const node = document.getElementById(nodeId);
     node.parentNode.removeChild(node);
+
+    const index = cuAddresses.indexOf(data['account']);
+    if (index > -1) {
+        cuAddresses.splice(index, 1);
+    }
+
+    if(cuAddresses.length < 1) {
+        connectedAddressesElement.removeChild(connectedAddressesList);
+
+        let div = document.createElement('div')
+        div.classList.add('cu-connected-addresses__empty');
+        div.innerHTML = displayMessages['no-addresses'];
+        connectedAddressesElement.append(div);
+    }
 }
