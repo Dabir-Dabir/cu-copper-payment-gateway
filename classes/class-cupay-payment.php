@@ -24,6 +24,9 @@ class Cupay_Payment {
 	public $order_timestamp;
 	private bool $transaction_check_complete = false;
 
+	private int $hash_counter = 0;
+	private int $block_counter = 0;
+
 	public function send_infura_request( string $method, array $params = [] ) {
 		$api_url = "https://" . get_option( 'cu_etherium_net' ) . ".infura.io/v3/" . get_option( 'cu_infura_api_id' );
 		$ch      = curl_init( $api_url );
@@ -83,53 +86,76 @@ class Cupay_Payment {
 		return $order->get_date_created()->getOffsetTimestamp();
 	}
 
+	public function get_interval_seconds( $counter ) {
+
+		if ( $counter < 3 ) {
+			return 10;
+		} elseif ( $counter < 6 ) {
+			return 30;
+		} elseif ( $counter < 8 ) {
+			return 100;
+		} elseif ( $counter < 12 ) {
+			return 300;
+		} elseif ( $counter < 15 ) {
+			return 1800;
+		} elseif ( $counter < 17 ) {
+			return 3600;
+		} elseif ( $counter < 18 ) {
+			return 21600;
+		} else {
+			return 43200;
+		}
+	}
+
 	public function get_block_hash() {
-		$loop = React\EventLoop\Loop::get();
-		$loop->addTimer( 10, function() { } );
 
-		$counter = 0;
-		$timer   = $loop->addPeriodicTimer( 10, function() use ( &$counter, &$timer, $loop ) {
-			if ( $counter > 4 ) {
-				$loop->cancelTimer( $timer );
-			}
-			$counter ++;
-			$transaction = $this->send_infura_request( 'eth_getTransactionByHash', [ $this->tx ] );
-			cu_log( 'call eth_getTransactionByHash' );
-			if ( $transaction['blockHash'] !== null ) {
-				$this->block_hash = $transaction['blockHash'];
-				$loop->cancelTimer( $timer );
-			}
+		$this->hash_counter ++;
+		$counter = $this->hash_counter;
 
-		} );
+		$transaction = $this->send_infura_request( 'eth_getTransactionByHash', [ $this->tx ] );
+		cu_log( 'call eth_getTransactionByHash 1' );
+		if ( $transaction['blockHash'] !== null ) {
+			$this->block_hash = $transaction['blockHash'];
 
+			return;
+		}
+
+		if ( $counter >= 20 ) {
+			return;
+		}
+
+		$interval = $this->get_interval_seconds( $counter );
+		$loop     = React\EventLoop\Loop::get();
+		$loop->addTimer( $interval, function() { $this->get_block_hash(); } );
 		$loop->run();
 	}
 
 	public function check_block() {
-		$loop = React\EventLoop\Loop::get();
 
-		$counter = 0;
-		$timer   = $loop->addPeriodicTimer( 10, function() use ( &$counter, &$timer, $loop ) {
-			if ( $counter > 10 ) {
-				$loop->cancelTimer( $timer );
-			}
-			$counter ++;
+		$this->block_counter ++;
+		$counter = $this->block_counter;
 
-			$block = $this->send_infura_request( 'eth_getBlockByHash', [ $this->block_hash, false ] );
-			cu_log( 'call eth_getBlockByHash' );
-			cu_log_export( $block, '$block' );
-			if ( ! is_array( $block ) || hexdec( $block['timestamp'] ) < $this->order_timestamp ) {
-				return false;
-			}
-			$this->transactions = $block['transactions'];
-			$this->uncles       = $block['uncles'];
-			if ( is_array( $this->transactions ) && is_array( $this->uncles ) && count( $this->transactions ) >= $this->transactions_minimum_count && count( $this->transactions ) > count( $this->uncles ) ) {
-				$this->transaction_check_complete = true;
-				$loop->cancelTimer( $timer );
-			}
+		$block = $this->send_infura_request( 'eth_getBlockByHash', [ $this->block_hash, false ] );
+		cu_log( 'call eth_getBlockByHash' );
+		cu_log_export( $block, '$block' );
+		if ( ! is_array( $block ) || hexdec( $block['timestamp'] ) < $this->order_timestamp ) {
+			return;
+		}
+		$this->transactions = $block['transactions'];
+		$this->uncles       = $block['uncles'];
+		if ( is_array( $this->transactions ) && is_array( $this->uncles ) && count( $this->transactions ) >= $this->transactions_minimum_count && count( $this->transactions ) > count( $this->uncles ) ) {
+			$this->transaction_check_complete = true;
 
-		} );
+			return;
+		}
 
+		if ( $counter >= 20 ) {
+			return;
+		}
+
+		$interval = $this->get_interval_seconds( $counter );
+		$loop     = React\EventLoop\Loop::get();
+		$loop->addTimer( $interval, function() { $this->check_block(); } );
 		$loop->run();
 	}
 
