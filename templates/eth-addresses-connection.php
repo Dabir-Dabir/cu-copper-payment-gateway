@@ -38,10 +38,10 @@
 <!--    <h5 class="cu-connected-addresses__account-title">--><?//= __('Current account', 'cu-copper-payment-gateway') ?><!--</h5>-->
 <!--    <div class="cu-connected-addresses__account" id="cu-current-provider"></div>-->
 
-    <button class="cu-connected-addresses__connect-button"
-            onclick="cupayRequestSignature(cuMessage, cuDisplayMessages)">
-		<?= __( 'Connect Ethereum address', 'cu-copper-payment-gateway' ) ?>
-    </button>
-
-    <div class="cu-connected-addresses__logs" id="cu-logs"></div>
 </div>
+<button class="cu-connected-addresses__connect-button"
+        onclick="cupayRequestSignature(cuMessage, cuDisplayMessages)">
+	<?= __( 'Connect Ethereum address', 'cu-copper-payment-gateway' ) ?>
+</button>
+
+<div class="cu-connected-addresses__logs" id="cu-logs"></div>

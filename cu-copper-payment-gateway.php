@@ -24,6 +24,7 @@ class CuCopperPaymentGateway {
 	}
 
 	public function includes() {
+		include 'vendor/autoload.php';
 		include 'logs.php';
 		include 'read-and-verify-signature.php';
 		include 'classes/class-cupay-payment.php';

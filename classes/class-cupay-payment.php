@@ -4,6 +4,25 @@ defined( 'ABSPATH' ) || exit;
 class Cupay_Payment {
 	public string $erc20_method = "a9059cbb";
 	public string $error;
+	public string $tx;
+	/**
+	 * @var mixed
+	 */
+	public $block_hash = null;
+	/**
+	 * @var mixed
+	 */
+	public $transactions;
+	/**
+	 * @var mixed
+	 */
+	public $uncles;
+	public int $transactions_minimum_count = 5;
+	/**
+	 * @var mixed
+	 */
+	public $order_timestamp;
+	private bool $transaction_check_complete = false;
 
 	public function send_infura_request( string $method, array $params = [] ) {
 		$api_url = "https://" . get_option( 'cu_etherium_net' ) . ".infura.io/v3/" . get_option( 'cu_infura_api_id' );
@@ -48,14 +67,7 @@ class Cupay_Payment {
 		];
 	}
 
-	public function get_data_for_transfer_input( $amount ):string {
-		$amount = $amount * 1E+18;
-		$amount_hash = dechex($amount);
-		return '0x' . $this->erc20_method . get_option('') . $amount_hash;
-	}
-
-
-	public function validate_transaction( $data, $order_id ): bool {
+	public function validate_transaction( $data, $order_id ) {
 		if ( strtolower( $data['symbol'] ) !== strtolower( get_option( 'cu_copper_contract_address' ) ) || strtolower( $data['receiver'] ) !== strtolower( get_option( 'cu_copper_target_address' ) ) ) {
 			return false;
 		}
@@ -63,20 +75,69 @@ class Cupay_Payment {
 		if ( (float) $data['amount'] !== (float) $order->get_total() ) {
 			return false;
 		}
+		$buyer_addresses = get_user_meta( get_current_user_id(), 'cu_eth_addresses', true );
+		if ( ! in_array( $data['sender'], $buyer_addresses ) ) {
+			return false;
+		}
 
-		// $buyer = $order->get_user()->user_email;
-		// if ( $data['sender'] !== $buyer) {
-		// 	return false;
-		// }
-		cu_log( 'p 2' );
+		return $order->get_date_created()->getOffsetTimestamp();
+	}
 
-		return true;
+	public function get_block_hash() {
+		$loop = React\EventLoop\Loop::get();
+		$loop->addTimer( 10, function() { } );
+
+		$counter = 0;
+		$timer   = $loop->addPeriodicTimer( 10, function() use ( &$counter, &$timer, $loop ) {
+			if ( $counter > 4 ) {
+				$loop->cancelTimer( $timer );
+			}
+			$counter ++;
+			$transaction = $this->send_infura_request( 'eth_getTransactionByHash', [ $this->tx ] );
+			cu_log( 'call eth_getTransactionByHash' );
+			if ( $transaction['blockHash'] !== null ) {
+				$this->block_hash = $transaction['blockHash'];
+				$loop->cancelTimer( $timer );
+			}
+
+		} );
+
+		$loop->run();
+	}
+
+	public function check_block() {
+		$loop = React\EventLoop\Loop::get();
+
+		$counter = 0;
+		$timer   = $loop->addPeriodicTimer( 10, function() use ( &$counter, &$timer, $loop ) {
+			if ( $counter > 10 ) {
+				$loop->cancelTimer( $timer );
+			}
+			$counter ++;
+
+			$block = $this->send_infura_request( 'eth_getBlockByHash', [ $this->block_hash, false ] );
+			cu_log( 'call eth_getBlockByHash' );
+			cu_log_export( $block, '$block' );
+			if ( ! is_array( $block ) || hexdec( $block['timestamp'] ) < $this->order_timestamp ) {
+				return false;
+			}
+			$this->transactions = $block['transactions'];
+			$this->uncles       = $block['uncles'];
+			if ( is_array( $this->transactions ) && is_array( $this->uncles ) && count( $this->transactions ) >= $this->transactions_minimum_count && count( $this->transactions ) > count( $this->uncles ) ) {
+				$this->transaction_check_complete = true;
+				$loop->cancelTimer( $timer );
+			}
+
+		} );
+
+		$loop->run();
 	}
 
 	public function check_transaction( $tx, $order_id = 0, $data = [] ): bool {
 		/* Validate tx */
 		if ( strlen( $tx ) !== 66 || strpos( $tx, '0x' ) !== 0 ) {
 			$this->error = __( 'Incorrect TX', 'cu-copper-payment-gateway' );
+
 			return false;
 		}
 
@@ -97,12 +158,22 @@ class Cupay_Payment {
 			'sender'   => $transaction['from'],
 		];
 
-		$order_timestamp = $this->validate_transaction( $transaction_data, $order_id );
+		$this->order_timestamp = $this->validate_transaction( $transaction_data, $order_id );
+		if ( $this->order_timestamp === false ) {
+			return false;
+		}
 
-		cu_log_export( $order_timestamp, '$order_timestamp' );
+		$this->tx = $tx;
+		if ( $this->block_hash === null ) {
+			$this->get_block_hash();
+		}
 
-		$block = $this->send_infura_request( 'eth_getBlockByHash', [ $tx, false ] );
+		if ( $this->block_hash === null ) {
+			return false;
+		}
 
-		return true;
+		$this->check_block();
+
+		return $this->transaction_check_complete;
 	}
 }

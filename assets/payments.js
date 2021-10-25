@@ -26,6 +26,7 @@ function cupayRequestPayment(amount, displayMessages) {
                 'tx': result,
                 'security': cuSecurity
             };
+            console.log(result);
             let ajaxurl = "/wp-admin/admin-ajax.php";
             jQuery.post(ajaxurl, data, function (response) {
                 console.log('Response');
@@ -49,5 +50,5 @@ function cupaySetButtonText() {
 }
 
 jQuery(window).load(() => {
-    cupaySetButtonText();
+    // cupaySetButtonText();
 });

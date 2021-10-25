@@ -199,7 +199,7 @@ function cupay_cu_check_transaction() {
 	$response = [
 		"action"  => 'cu_check_transaction',
 		"done"    => true,
-		"success" => __( 'Account removed!', 'cu-copper-payment-gateway' ),
+		"success" => __( 'Order Payed!', 'cu-copper-payment-gateway' ),
 	];
 
 	echo json_encode( $response );
