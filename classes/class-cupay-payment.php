@@ -27,6 +27,8 @@ class Cupay_Payment {
 	private int $hash_counter = 0;
 	private int $block_counter = 0;
 
+	private bool $not_double_payment = false;
+
 	public function send_infura_request( string $method, array $params = [] ) {
 		$api_url = "https://" . get_option( 'cu_etherium_net' ) . ".infura.io/v3/" . get_option( 'cu_infura_api_id' );
 		$ch      = curl_init( $api_url );
@@ -113,7 +115,6 @@ class Cupay_Payment {
 		$counter = $this->hash_counter;
 
 		$transaction = $this->send_infura_request( 'eth_getTransactionByHash', [ $this->tx ] );
-		cu_log( 'call eth_getTransactionByHash 1' );
 		if ( $transaction['blockHash'] !== null ) {
 			$this->block_hash = $transaction['blockHash'];
 
@@ -136,13 +137,30 @@ class Cupay_Payment {
 		$counter = $this->block_counter;
 
 		$block = $this->send_infura_request( 'eth_getBlockByHash', [ $this->block_hash, false ] );
-		cu_log( 'call eth_getBlockByHash' );
-		cu_log_export( $block, '$block' );
 		if ( ! is_array( $block ) || hexdec( $block['timestamp'] ) < $this->order_timestamp ) {
 			return;
 		}
 		$this->transactions = $block['transactions'];
 		$this->uncles       = $block['uncles'];
+
+		if ( ! $this->not_double_payment ) {
+			$args      = array(
+				'limit'     => - 1,
+				'return'    => 'ids',
+				'date_paid' => '>' . $block['timestamp'],
+				'status'    => 'completed'
+			);
+			$order_ids = new WC_Order_Query( $args );
+
+			foreach ( $order_ids as $id ) {
+				$order_tx = get_post_meta( $id, 'cu_tx', true );
+				if ( $order_tx === $this->tx ) {
+					return;
+				}
+			}
+
+			$this->not_double_payment = true;
+		}
 		if ( is_array( $this->transactions ) && is_array( $this->uncles ) && count( $this->transactions ) >= $this->transactions_minimum_count && count( $this->transactions ) > count( $this->uncles ) ) {
 			$this->transaction_check_complete = true;
 
@@ -159,11 +177,38 @@ class Cupay_Payment {
 		$loop->run();
 	}
 
-	public function check_transaction( $tx, $order_id = 0, $data = [] ): bool {
+	public function check_order( $tx, $order_id ): bool {
+
+		if ( ! (int) $order_id || $order_id < 1 ) {
+			$this->error = __( 'Incorrect Order ID', 'cu-copper-payment-gateway' );
+
+			return false;
+		}
+
+		$order = wc_get_order( $order_id );
+		if ( ! is_object( $order ) || $order->get_status() === 'completed' ) {
+			$this->error = __( 'Incorrect Order', 'cu-copper-payment-gateway' );
+
+			return false;
+		}
+
+		$tx_added_to_post = update_post_meta( $order_id, 'cu_tx', $tx );
+		if ( ! $tx_added_to_post ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function check_transaction( $tx, $order_id, $data = [] ): bool {
 		/* Validate tx */
 		if ( strlen( $tx ) !== 66 || strpos( $tx, '0x' ) !== 0 ) {
 			$this->error = __( 'Incorrect TX', 'cu-copper-payment-gateway' );
 
+			return false;
+		}
+
+		if ( ! $this->check_order( $tx, $order_id ) ) {
 			return false;
 		}
 
