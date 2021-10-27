@@ -110,7 +110,7 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 				'description' => __( 'Tell to the customer to set a high gas price for speed up transaction.', 'cu-copper-payment-gateway' ),
 				'desc_tip'    => true,
 			),
-			'gas_limit'              => array(
+			'gas_limit'        => array(
 				'title'       => __( 'Gas Limit', 'cu-copper-payment-gateway' ),
 				'type'        => 'number',
 				'default'     => 1000,
@@ -168,16 +168,10 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	 */
 	public function payment_scripts(): void {
 		wp_enqueue_script( 'cupay_web3', CU_URL . '/assets/web3.min.js', array( 'jquery' ), 1.1, true );
-		wp_register_script( 'cupay_eth_addresses_connection', CU_URL . '/assets/eth-addresses-connection.js', array(
+		wp_enqueue_script( 'cupay_payment', CU_URL . '/assets/payment.js', array(
 			'jquery',
 			'cupay_web3'
-		) );
-		wp_register_script( 'cupay_payments', CU_URL . '/assets/payments.js', array(
-			'jquery',
-			'cupay_web3'
-		) );
-		wp_enqueue_script( 'cupay_eth_addresses_connection' );
-		wp_enqueue_script( 'cupay_payments' );
+		), 1.0, true );
 	}
 
 	/**
@@ -208,7 +202,7 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		$customer = $order->get_user();
 
 		if ( $customer && get_user_meta( $customer->ID, 'cu_eth_token', true ) == '' ) {
-			update_user_meta( $customer->ID, 'cu_eth_token', wp_generate_password(6, false));
+			update_user_meta( $customer->ID, 'cu_eth_token', wp_generate_password( 6, false ) );
 		}
 
 		/**
@@ -242,13 +236,13 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		}
 
 		$order = wc_get_order( $order_id );
-		$payment_amount = (float) $order->get_total();
 		/**
 		 * Monitor whether the order needs to be paid
 		 */
 		if ( $order->needs_payment() ) {
-			include CU_ABSPATH . '/templates/eth-addresses-connection.php';
-			include CU_ABSPATH . '/templates/pay-button.php';
+			$shortcode = '[cupay_connect_addresses order-id="' . $order_id . '"]';
+			// $shortcode = '[cupay_connect_addresses]';
+			echo do_shortcode( $shortcode );
 		} else {
 			include CU_ABSPATH . '/templates/order-payed.php';
 		}

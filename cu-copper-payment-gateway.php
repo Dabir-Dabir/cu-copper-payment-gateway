@@ -9,8 +9,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if(!defined('CU_ABSPATH')) {
-	define('CU_ABSPATH', __DIR__);
+if ( ! defined( 'CU_ABSPATH' ) ) {
+	define( 'CU_ABSPATH', __DIR__ );
 }
 if ( ! defined( 'CU_URL' ) ) {
 	define( "CU_URL", plugins_url( '', __FILE__ ) );
@@ -36,6 +36,7 @@ class CuCopperPaymentGateway {
 		add_action( 'init', [ $this, 'thankyou_request' ] );
 		add_action( 'plugins_loaded', [ $this, 'init_gateway_class' ] );
 
+		add_shortcode( 'cupay_connect_addresses', [ $this, 'connect_addresses_shortcode' ] );
 	}
 
 	/**
@@ -65,7 +66,7 @@ class CuCopperPaymentGateway {
 	 * Monitor the payment completion request of the plug-in
 	 */
 	public function thankyou_request() {
-		if ( isset($_GET['cu']) && $_GET['cu'] === 'cu' ) {
+		if ( isset( $_GET['cu'] ) && $_GET['cu'] === 'cu' ) {
 			( new Cupay_Payment )->check_transaction( '0xfdb734ba4383d7fd801d6083815aa29cb08f9adcb291abfbd21f05f283cc6bc2', 44 );
 		}
 		/**
@@ -102,6 +103,14 @@ class CuCopperPaymentGateway {
 			exit();
 		}
 
+	}
+
+	public function connect_addresses_shortcode( $atts ) {
+		$order_id = false;
+		if ( isset($atts['order-id']) ) {
+			$order_id = (int) $atts['order-id'];
+		}
+		include CU_ABSPATH . '/templates/pay-order.php';
 	}
 }
 

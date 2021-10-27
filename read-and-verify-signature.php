@@ -141,7 +141,9 @@ function cupay_cu_remove_eth_address_from_account() {
 		echo json_encode( $response );
 		die;
 	}
-	unset( $user_addresses[ array_search( '$address', $user_addresses ) ] );
+
+	$array_needle_index = array_search( $address, $user_addresses );
+	array_splice($user_addresses, $array_needle_index, 1);
 	$user_addresses_updated = update_user_meta( $user_id, 'cu_eth_addresses', $user_addresses );
 	if ( ! $user_addresses_updated ) {
 		$response = [
