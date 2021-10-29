@@ -88,7 +88,7 @@ class Cupay_Payment {
 		return $order->get_date_created()->getOffsetTimestamp();
 	}
 
-	public function get_interval_seconds( $counter ) {
+	public function get_interval_seconds( $counter ): int {
 
 		if ( $counter < 3 ) {
 			return 10;
@@ -138,37 +138,38 @@ class Cupay_Payment {
 
 		$block = $this->send_infura_request( 'eth_getBlockByHash', [ $this->block_hash, false ] );
 		if ( ! is_array( $block ) || hexdec( $block['timestamp'] ) < $this->order_timestamp ) {
-			return;
+			return false;
 		}
 		$this->transactions = $block['transactions'];
 		$this->uncles       = $block['uncles'];
 
 		if ( ! $this->not_double_payment ) {
-			$args      = array(
+
+			$query     = new WC_Order_Query( [
 				'limit'     => - 1,
 				'return'    => 'ids',
 				'date_paid' => '>' . $block['timestamp'],
 				'status'    => 'completed'
-			);
-			$order_ids = new WC_Order_Query( $args );
-
-			foreach ( $order_ids as $id ) {
-				$order_tx = get_post_meta( $id, 'cu_tx', true );
-				if ( $order_tx === $this->tx ) {
-					return;
+			] );
+			try {
+				$order_ids = $query->get_orders();
+				foreach ( $order_ids as $id ) {
+					$order_tx = get_post_meta( $id, 'cu_tx', true );
+					if ( $order_tx === $this->tx ) {
+						return false;
+					}
 				}
-			}
+			} catch ( Exception $e) {}
 
 			$this->not_double_payment = true;
 		}
-		if ( is_array( $this->transactions ) && is_array( $this->uncles ) && count( $this->transactions ) >= $this->transactions_minimum_count && count( $this->transactions ) > count( $this->uncles ) ) {
-			$this->transaction_check_complete = true;
 
-			return;
+		if ( is_array( $this->transactions ) && is_array( $this->uncles ) && count( $this->transactions ) >= $this->transactions_minimum_count && count( $this->transactions ) > count( $this->uncles ) ) {
+			return true;
 		}
 
 		if ( $counter >= 20 ) {
-			return;
+			return false;
 		}
 
 		$interval = $this->get_interval_seconds( $counter );
@@ -235,7 +236,9 @@ class Cupay_Payment {
 		}
 
 		$this->tx = $tx;
-		if ( $this->block_hash === null ) {
+		if ( $transaction['blockHash'] !== null ) {
+			$this->block_hash = $transaction['blockHash'];
+		} else {
 			$this->get_block_hash();
 		}
 
@@ -243,8 +246,13 @@ class Cupay_Payment {
 			return false;
 		}
 
-		$this->check_block();
+		if ($this->check_block()) {
+			return false;
+		}
 
-		return $this->transaction_check_complete;
+		$order = wc_get_order($order_id);
+		$order->payment_complete();
+
+		return true;
 	}
 }

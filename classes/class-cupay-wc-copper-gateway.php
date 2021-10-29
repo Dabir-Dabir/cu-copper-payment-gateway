@@ -13,10 +13,10 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 
 	public function __construct() {
 		$this->id                 = 'cupay_erc20';
-		$this->title              = __( 'Pay with ERC20 Token', 'cu-copper-payment-gateway' );
-		$this->method_title       = __( 'Pay with ERC20 Token', 'cu-copper-payment-gateway' );
-		$this->order_button_text  = __( 'Use Token Payment', 'cu-copper-payment-gateway' );
-		$this->method_description = __( 'Allows to use ERC20 Token as WooCommerce Payment method', 'cu-copper-payment-gateway' );
+		$this->title              = __( 'Pay with peg63.546u', 'cu-copper-payment-gateway' );
+		$this->method_title       = __( 'Pay with peg63.546u', 'cu-copper-payment-gateway' );
+		$this->order_button_text  = __( 'Use Copper Payment', 'cu-copper-payment-gateway' );
+		$this->method_description = __( 'Ethereum ERC20 Token peg63.546u Copper payment.', 'cu-copper-payment-gateway' );
 
 
 		$this->supports = array(
@@ -37,7 +37,6 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 
 		$this->save_fields();
 		$this->set_hooks();
-
 	}
 
 	/**
@@ -59,11 +58,19 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 			$this,
 			'process_admin_options'
 		) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'payment_scripts' ) );
-		add_action( 'woocommerce_api_compete', array( $this, 'webhook' ) );
-		add_action( 'admin_notices', array( $this, 'do_ssl_check' ) );
-		add_action( 'woocommerce_thankyou', array( $this, 'thankyou_page' ) );
+		add_action( 'woocommerce_api_compete', [ $this, 'webhook' ] );
+		add_action( 'admin_notices', [ $this, 'do_ssl_check' ] );
+		add_action( 'woocommerce_thankyou', [ $this, 'thankyou_page' ], 5 );
+		add_action( 'woocommerce_account_content', [ $this, 'account_ethereum_addresses' ], 5 );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_payment_scripts' ], 20 );
+	}
 
+	/**
+	 * Load JavaScript for payment at the front desk
+	 */
+	public function enqueue_payment_scripts(): void {
+		wp_enqueue_script( 'cupay_web3' );
+		wp_enqueue_script( 'cupay_payment' );
 	}
 
 	/**
@@ -164,17 +171,6 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Load JavaScript for payment at the front desk
-	 */
-	public function payment_scripts(): void {
-		wp_enqueue_script( 'cupay_web3', CU_URL . '/assets/web3.min.js', array( 'jquery' ), 1.1, true );
-		wp_enqueue_script( 'cupay_payment', CU_URL . '/assets/payment.js', array(
-			'jquery',
-			'cupay_web3'
-		), 1.0, true );
-	}
-
-	/**
 	 * No form verification is done because there is no form set on the checkout page.
 	 */
 	public function validate_fields(): bool {
@@ -201,6 +197,7 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 
 		$customer = $order->get_user();
 
+		// Set user secret password for Bound signature
 		if ( $customer && get_user_meta( $customer->ID, 'cu_eth_token', true ) == '' ) {
 			update_user_meta( $customer->ID, 'cu_eth_token', wp_generate_password( 6, false ) );
 		}
@@ -246,6 +243,11 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		} else {
 			include CU_ABSPATH . '/templates/order-payed.php';
 		}
+
+	}
+
+	public function account_ethereum_addresses(): void {
+		echo do_shortcode( '[cupay_connect_addresses]' );
 
 	}
 

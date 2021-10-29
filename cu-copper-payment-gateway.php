@@ -21,21 +21,40 @@ class CuCopperPaymentGateway {
 	public function __construct() {
 		$this->includes();
 		$this->set_hooks();
+
+		add_shortcode( 'cupay_connect_addresses', [ $this, 'connect_addresses_shortcode' ] );
 	}
 
 	public function includes() {
 		include 'vendor/autoload.php';
 		include 'logs.php';
-		include 'read-and-verify-signature.php';
 		include 'classes/class-cupay-payment.php';
+		include 'ajax.php';
 	}
 
 	public function set_hooks() {
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ $this, 'add_settings_link' ] );
 		add_filter( 'woocommerce_payment_gateways', [ $this, 'add_gateway_class' ] );
 		add_action( 'plugins_loaded', [ $this, 'init_gateway_class' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'register_payment_scripts' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_payment_scripts' ], 20 );
+	}
 
-		add_shortcode( 'cupay_connect_addresses', [ $this, 'connect_addresses_shortcode' ] );
+	/**
+	 * Load JavaScript for payment at the front desk
+	 */
+	public function register_payment_scripts(): void {
+		wp_register_script( 'cupay_web3', CU_URL . '/assets/web3.min.js', array( 'jquery' ), 1.1, true );
+		wp_register_script( 'cupay_payment', CU_URL . '/assets/payment.js', array(
+			'jquery',
+			'cupay_web3'
+		), 1.0, true );
+	}
+
+	public function enqueue_payment_scripts(): void {
+		if ( is_edit_account_page() ) {
+			wp_enqueue_script( 'cupay_payment' );
+		}
 	}
 
 	/**
@@ -61,50 +80,9 @@ class CuCopperPaymentGateway {
 		include 'classes/class-cupay-wc-copper-gateway.php';
 	}
 
-	/**
-	 * Monitor the payment completion request of the plug-in
-	 */
-	public function thankyou_request() {
-		/**
-		 * Determine whether the user request is a specific path.
-		 * If the path is modified here, it should be modified in payments.js too.
-		 */
-		if ( $_SERVER["REQUEST_URI"] === '/hook/wc_erc20' ) {
-			$data     = $_POST;
-			$order_id = $data['orderid'];
-			$tx       = $data['tx'];
-
-			$is_payed = ( new Cupay_Payment )->check_transaction( $tx, $order_id, $data );
-			if ( ! $is_payed ) {
-				return;
-			}
-
-			/**
-			 * Get the order
-			 */
-			$order = wc_get_order( $order_id );
-
-			/**
-			 * Mark order payment completed
-			 */
-			$order->payment_complete();
-			/**
-			 * Add order remarks and indicate 'tx' viewing address
-			 */
-			$order->payment_complete();
-			$order->add_order_note( __( "Order payment completed", 'cu-copper-payment-gateway' ) . "Tx:<a target='_blank' href='http://etherscan.io/tx/" . $tx . "'>" . $tx . "</a>" );
-			/**
-			 * Need to exit, otherwise the page content will be displayed.
-			 * It displays blank when it exits, and prints a section of JSON on the interface.
-			 */
-			exit();
-		}
-
-	}
-
 	public function connect_addresses_shortcode( $atts ) {
 		$order_id = false;
-		if ( isset($atts['order-id']) ) {
+		if ( isset( $atts['order-id'] ) ) {
 			$order_id = (int) $atts['order-id'];
 		}
 		include CU_ABSPATH . '/templates/pay-order.php';

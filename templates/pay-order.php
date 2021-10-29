@@ -71,9 +71,7 @@
     <div class="cu-connected-addresses" id="cu-connected-addresses">
         <h3 class="cu-connected-addresses__title"><?= __( 'Bonded addresses', 'cu-copper-payment-gateway' ) ?></h3>
 
-		<?php if ( is_array( $cu_addresses ) && count( $cu_addresses ) > 0 ) :
-			var_dump( $cu_addresses );
-			?>
+		<?php if ( is_array( $cu_addresses ) && count( $cu_addresses ) > 0 ) : ?>
             <ul class="cu-connected-addresses__list">
 				<?php foreach ( $cu_addresses as $address ) : ?>
                     <li class="cu-connected-addresses__list" id="cu-address-<?= $address ?>"
