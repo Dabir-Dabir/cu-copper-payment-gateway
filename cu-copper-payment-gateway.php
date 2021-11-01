@@ -35,6 +35,7 @@ class CuCopperPaymentGateway {
 	}
 
 	public function set_hooks() {
+		add_action( 'admin_init', [ $this, 'add_privacy_suggestion_text' ] );
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ $this, 'add_settings_link' ] );
 		add_filter( 'woocommerce_payment_gateways', [ $this, 'add_gateway_class' ] );
 		add_action( 'plugins_loaded', [ $this, 'init_gateway_class' ] );
@@ -100,6 +101,22 @@ class CuCopperPaymentGateway {
 			$order_id = (int) $atts['order-id'];
 		}
 		include CU_ABSPATH . '/templates/pay-order.php';
+	}
+
+	public function add_privacy_suggestion_text() {
+		if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
+			return;
+		}
+
+		ob_start(); ?>
+        <h2><?= __( 'What data we save?', 'cu-copper-payment-gateway' ) ?></h2>
+        <p><?= __( 'If you bound the Ethereum address(es) to your account we will save it (them) until you remove it (them).', 'cu-copper-payment-gateway' ) ?></p>
+        <h2><?= __( 'Why do we save your Ethereum Addresses?', 'cu-copper-payment-gateway' ) ?></h2>
+        <p><?= __( 'It\'s (they\'re) used to identify the payer of the order. Do not delete your Ethereum Account until all payments are complete, or you may lose your payment.', 'cu-copper-payment-gateway' ) ?></p>
+		<?php
+		$content = ob_get_clean();
+
+		wp_add_privacy_policy_content( 'WooCommerce peg63.546u Copper Payment Gateway', $content );
 	}
 }
 

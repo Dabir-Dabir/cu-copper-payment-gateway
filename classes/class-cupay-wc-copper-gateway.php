@@ -14,7 +14,6 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	private string $contract_address;
 	private string $net;
 	private string $target_address;
-	// private string $is_test_mode;
 	private string $api_id;
 	private string $api_secret;
 	private string $api_url;
@@ -86,6 +85,14 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	 * Setup settings
 	 */
 	public function init_form_fields(): void {
+		/*ToDo To be changed*/
+		$main_net_url     = 'https://ropsten.etherscan.io/address/0xe93B988735f39647F4c5Fca724E3CEe543B386A9';
+		$main_net_link    = sprintf( wp_kses( __( 'In Production mode it usses Ethereum Main Network. You can see the token <a href="%s">contract here</a>.', 'cu-copper-payment-gateway' ), array( 'a' => array( 'href' => array() ) ) ), esc_url( $main_net_url ) );
+		$ropsten_net_url  = 'https://ropsten.etherscan.io/address/0xe93B988735f39647F4c5Fca724E3CEe543B386A9';
+		$ropsten_net_link = sprintf( wp_kses( __( 'In Test mode it usses Ethereum Ropsten Network. You can see the token <a href="%s">contract here</a>.', 'cu-copper-payment-gateway' ), array( 'a' => array( 'href' => array() ) ) ), esc_url( $ropsten_net_url ) );
+
+		$information_description = $main_net_link . '<br>' . $ropsten_net_link;
+		$uninstall_description   = wp_kses( __( '<b style="color:red">Be very carefull with this checkbox!</b>', 'cu-copper-payment-gateway' ), array( 'b' => array( 'style' => array() ) ) ) . ' ' . __( 'It will dlelete all saved configurations for this payment gateway. Also, it will delete all Ethereum Addresses bound to Accounts and TXs included in orders.', 'cu-copper-payment-gateway' );
 
 		$this->form_fields = array(
 			'enabled'         => array(
@@ -157,13 +164,13 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 			'information'     => array(
 				'title'       => __( 'Information', 'cu-copper-payment-gateway' ),
 				'type'        => 'title',
-				'description' => __( '<a href="https://ropsten.etherscan.io/address/0xe93B988735f39647F4c5Fca724E3CEe543B386A9" target="_blank">Ropsten</a>', 'cu-copper-payment-gateway' )
+				'description' => $information_description,
 			),
 			'uninstall'       => array(
 				'title'       => __( 'Uninstall', 'cu-copper-payment-gateway' ),
 				'label'       => __( 'Clean Data', 'cu-copper-payment-gateway' ),
 				'type'        => 'checkbox',
-				'description' => __( '<b style="color:red">Be very carefull with this checkbox!</b> It will dlelete all saved configurations for this payment gateway. Also, it will delete all Ethereum Addresses bound to Accounts and TXs included in orders.', 'cu-copper-payment-gateway' ),
+				'description' => $uninstall_description,
 			)
 
 		);
