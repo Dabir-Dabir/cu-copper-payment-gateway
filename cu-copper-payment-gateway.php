@@ -19,11 +19,19 @@ if ( ! defined( 'CU_URL' ) ) {
 class CuCopperPaymentGateway {
 
 	public function __construct() {
+		if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) ) {
+			add_action( 'admin_notices', [ $this, 'admin_notices' ], 15 );
+			return;
+		}
 
 		$this->includes();
 		$this->set_hooks();
 
 		add_shortcode( 'cupay_connect_addresses', [ $this, 'connect_addresses_shortcode' ] );
+	}
+
+	public function admin_notices() {
+		echo '<div class="error"><h3>' . __( 'You need to <strong>install and activate</strong> <a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>', 'cu-copper-payment-gateway' ) . '</h3></div>';
 	}
 
 	public function includes() {
@@ -111,8 +119,11 @@ class CuCopperPaymentGateway {
 		ob_start(); ?>
         <h2><?= __( 'What data we save?', 'cu-copper-payment-gateway' ) ?></h2>
         <p><?= __( 'If you bound the Ethereum address(es) to your account we will save it (them) until you remove it (them).', 'cu-copper-payment-gateway' ) ?></p>
-        <h2><?= __( 'Why do we save your Ethereum Addresses?', 'cu-copper-payment-gateway' ) ?></h2>
-        <p><?= __( 'It\'s (they\'re) used to identify the payer of the order. Do not delete your Ethereum Account until all payments are complete, or you may lose your payment.', 'cu-copper-payment-gateway' ) ?></p>
+        <h2><?= __( 'Why do we save your Ethereum Address(es)?', 'cu-copper-payment-gateway' ) ?></h2>
+        <p><?= __( 'It\'s (they\'re) used to identify the payer of the order.', 'cu-copper-payment-gateway' ) ?></p>
+        <p class="privacy-policy-tutorial"><strong>
+				<?= __( 'Do not delete your Ethereum Account until all payments are complete, or you may lose your payment!', 'cu-copper-payment-gateway' ) ?>
+            </strong></p>
 		<?php
 		$content = ob_get_clean();
 
