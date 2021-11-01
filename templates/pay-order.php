@@ -1,3 +1,6 @@
+<?php
+defined( 'ABSPATH' ) || exit;
+?>
 <script>
     let cuAddresses = [];
 	<?php
@@ -29,19 +32,18 @@
     cuPayHasButton = true;
     cuPayData.amount = <?= (string) $order->get_total() ?>;
     cuPayData.orderId = <?= $order_id ?>;
-    cuPayData.contractAddress = "<?= get_option('cu_copper_contract_address') ?>";
-    cuPayData.abiArray = <?= get_option('cu_copper_abi_array', []) ?>;
-    cuPayData.targetAddress = "<?= get_option('cu_copper_target_address') ?>";
-
+    cuPayData.contractAddress = "<?= get_option( 'cu_copper_contract_address' ) ?>";
+    cuPayData.abiArray = <?= get_option( 'cu_copper_abi_array', [] ) ?>;
+    cuPayData.targetAddress = "<?= get_option( 'cu_copper_target_address' ) ?>";
 
 
     jQuery(window).load(() => {
-        if(window.ethereum) {
+        if (window.ethereum) {
             cupayShowCurrentAccount();
         }
         cupaySetButtonText();
 
-        if(window.ethereum) {
+        if (window.ethereum) {
             window.ethereum.on('accountsChanged', function (accounts) {
                 cupayShowCurrentAccount();
                 cupaySetButtonText();

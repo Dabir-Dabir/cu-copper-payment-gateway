@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 function cu_uninstall() {
 	/**
 	 * Delete Payment options

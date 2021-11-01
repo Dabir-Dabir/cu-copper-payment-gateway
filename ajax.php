@@ -1,4 +1,6 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
 require_once "lib/Keccak/Keccak.php";
 require_once "lib/Elliptic/EC.php";
 require_once "lib/Elliptic/Curves.php";

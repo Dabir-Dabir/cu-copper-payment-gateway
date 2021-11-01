@@ -1,12 +1,12 @@
 {
-    "name": "lado/cu-copper-payment-gateway",
-    "authors": [
-        {
-            "name": "Lado",
-            "email": "lado.mikiashvili@gmail.com"
-        }
-    ],
-    "require": {
-        "react/event-loop": "^1.2"
+  "name": "firstrateit/cu-copper-payment-gateway",
+  "authors": [
+    {
+      "name": "firstRateiT",
+      "email": "info@firstrateit.com"
     }
+  ],
+  "require": {
+    "react/event-loop": "^1.2"
+  }
 }
