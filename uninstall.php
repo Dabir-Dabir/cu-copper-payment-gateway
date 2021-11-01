@@ -6,6 +6,7 @@ function cu_uninstall() {
 	 * Delete Payment options
 	 * */
 	$options = [
+		'cu_gas_notice',
 		'cu_copper_target_address',
 		'cu_copper_contract_address',
 		'cu_copper_abi_array',

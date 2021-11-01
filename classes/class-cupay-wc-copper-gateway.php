@@ -76,6 +76,8 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	 * Load JavaScript for payment at the front desk
 	 */
 	public function enqueue_payment_scripts(): void {
+		wp_enqueue_style( 'cupay_style' );
+
 		wp_enqueue_script( 'cupay_web3' );
 		wp_enqueue_script( 'cupay_payment' );
 	}
@@ -243,8 +245,9 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	}
 
 	public function account_ethereum_addresses(): void {
-		echo do_shortcode( '[cupay_connect_addresses]' );
-
+		if ( is_edit_account_page() ) {
+			echo do_shortcode( '[cupay_connect_addresses]' );
+		}
 	}
 
 	public function get_icon() {
@@ -283,6 +286,7 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		}
 
 		$options = [
+			[ 'cu_gas_notice', $this->gas_notice ],
 			[ 'cu_copper_target_address', $this->target_address ],
 			[ 'cu_copper_contract_address', $this->contract_address ],
 			[ 'cu_copper_abi_array', $this->abi_array ],

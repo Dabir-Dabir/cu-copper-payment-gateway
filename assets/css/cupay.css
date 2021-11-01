@@ -1,0 +1,76 @@
+/*
+Variables
+*/
+#cu-pay.cu-pay {
+  padding: 0 50px 30px;
+  background: #e4e4e4;
+  color: #000000;
+  box-sizing: border-box;
+}
+#cu-pay.cu-pay * {
+  box-sizing: border-box;
+}
+#cu-pay.cu-pay .cu-pay__current-provider {
+  margin: 0;
+  padding-top: 50px;
+}
+#cu-pay.cu-pay .cu-pay__current-provider-title {
+  font-weight: normal;
+}
+#cu-pay.cu-pay .cu-pay__current-provider-account {
+  font-weight: bold;
+}
+#cu-pay.cu-pay .cu-pay__gas-notice {
+  margin-top: 20px;
+  margin-bottom: 0;
+  text-transform: none;
+}
+#cu-pay.cu-pay .cu-pay__pay-button, #cu-pay.cu-pay .cu-pay__pay-button:visited {
+  margin-top: 15px;
+  margin-bottom: 0;
+  width: auto;
+  height: auto;
+  padding: 20px 30px;
+  color: #ffffff;
+  background: #EE964B;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: 0.3s;
+}
+#cu-pay.cu-pay .cu-pay__pay-button:hover {
+  background-color: #eb842d;
+}
+#cu-pay.cu-pay .cu-pay__logs {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 0;
+  padding: 3px 9px;
+  border: 2px solid #eb842d;
+  background-color: #ffffff;
+}
+#cu-pay.cu-pay .cu-pay__logs:empty {
+  display: none;
+}
+#cu-pay.cu-pay .cu-connected-addresses {
+  padding-top: 50px;
+}
+#cu-pay.cu-pay .cu-connected-addresses__title {
+  margin: 0;
+}
+#cu-pay.cu-pay .cu-connected-addresses__list {
+  margin: 30px 0 0 20px;
+}
+#cu-pay.cu-pay .cu-connected-addresses__delete-button {
+  display: inline-block;
+  margin-left: 40px;
+  width: auto;
+  height: auto;
+  padding: 15px 20px;
+  background-color: #4a4a4a;
+  transition: 0.3s;
+}
+#cu-pay.cu-pay .cu-connected-addresses__delete-button:hover {
+  background-color: #000000;
+}
+
+/*# sourceMappingURL=cupay.css.map */

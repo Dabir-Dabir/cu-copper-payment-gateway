@@ -56,11 +56,11 @@ defined( 'ABSPATH' ) || exit;
 
 	<?php if ( $order_id ) : ?>
         <h5 class="cu-pay__current-provider">
-            <span class="cu-pay__current-provider-title"> <?= __( 'Current account', 'cu-copper-payment-gateway' ) ?>:</span>
+            <span class="cu-pay__current-provider-title"><?= __( 'Current account', 'cu-copper-payment-gateway' ) ?>:</span>
             <span class="cu-pay__current-provider-account" id="cu-pay__current-provider-account">...</span>
         </h5>
 
-        <h6 class="cu-connected-addresses__gas-notice"><?= $this->gas_notice ?></h6>
+        <h6 class="cu-connected-addresses__gas-notice"><?= get_option('cu_gas_notice') ?></h6>
 
         <button class="cu-pay__pay-button" id="cu-pay__pay-button"
                 onclick="cupayPay(cuPayData)">
@@ -80,8 +80,7 @@ defined( 'ABSPATH' ) || exit;
                         data-cu-address="<?= $address ?>">
                         <span class="cu-connected-addresses__span"><?= $address ?></span>
                         <button class="cu-connected-addresses__delete-button"
-                                onclick="cupayRemoveAddress('<?= $address ?>',cuPayData)">X
-                        </button>
+                                onclick="cupayRemoveAddress('<?= $address ?>',cuPayData)">X</button>
                     </li>
 				<?php endforeach; ?>
             </ul>

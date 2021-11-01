@@ -55,6 +55,8 @@ class CuCopperPaymentGateway {
 	 * Load JavaScript for payment at the front desk
 	 */
 	public function register_payment_scripts(): void {
+		wp_register_style( 'cupay_style', CU_URL . '/assets/css/cupay.css' );
+
 		wp_register_script( 'cupay_web3', CU_URL . '/assets/js/web3.min.js', array( 'jquery' ), 1.1, true );
 		wp_register_script( 'cupay_payment', CU_URL . '/assets/js/payment.js', array(
 			'jquery',
@@ -64,6 +66,7 @@ class CuCopperPaymentGateway {
 
 	public function enqueue_payment_scripts(): void {
 		if ( is_edit_account_page() ) {
+			wp_enqueue_style( 'cupay_style' );
 			wp_enqueue_script( 'cupay_payment' );
 		}
 	}
