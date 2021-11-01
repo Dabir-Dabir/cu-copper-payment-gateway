@@ -10,14 +10,21 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	 * @var Cupay_WC_Copper_Gateway
 	 */
 	private static $_instance;
+	private string $abi_array;
+	private string $contract_address;
+	private string $net;
+	private string $target_address;
+	// private string $is_test_mode;
+	private string $api_id;
+	private string $api_secret;
+	private string $api_url;
 
 	public function __construct() {
 		$this->id                 = 'cupay_erc20';
-		$this->title              = __( 'Pay with peg63.546u', 'cu-copper-payment-gateway' );
-		$this->method_title       = __( 'Pay with peg63.546u', 'cu-copper-payment-gateway' );
-		$this->order_button_text  = __( 'Use Copper Payment', 'cu-copper-payment-gateway' );
-		$this->method_description = __( 'Ethereum ERC20 Token peg63.546u Copper payment.', 'cu-copper-payment-gateway' );
-
+		$this->title              = __( 'Pay with ERC20 peg63.546u Copper (Cu)', 'cu-copper-payment-gateway' );
+		$this->method_title       = __( 'ERC20 peg63.546u Copper (Cu)', 'cu-copper-payment-gateway' );
+		$this->order_button_text  = __( 'Pay with Copper', 'cu-copper-payment-gateway' );
+		$this->method_description = __( 'Ethereum ERC20 Token peg63.546u Copper (Cu) payment gateway.', 'cu-copper-payment-gateway' );
 
 		$this->supports = array(
 			'products',
@@ -79,93 +86,83 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	public function init_form_fields(): void {
 
 		$this->form_fields = array(
-			'enabled'          => array(
+			'enabled'         => array(
 				'title'   => __( 'Enable/Disable', 'cu-copper-payment-gateway' ),
-				'label'   => __( 'Enable ERC20 Payment Gateway', 'cu-copper-payment-gateway' ),
+				'label'   => __( 'Enable ERC20 peg63.546u Copper (Cu) Payment Gateway', 'cu-copper-payment-gateway' ),
 				'type'    => 'checkbox',
 				'default' => 'no',
 			),
-			'checkout__title'  => array(
+			'checkout__title' => array(
 				'title'       => __( 'Apparance', 'cu-copper-payment-gateway' ),
 				'type'        => 'title',
 				'description' => __( 'Checkout and order', 'cu-copper-payment-gateway' ),
 			),
-			'title'            => array(
+			'title'           => array(
 				'title'       => __( 'Title', 'cu-copper-payment-gateway' ),
 				'type'        => 'text',
-				'description' => __( 'Title Will Show at Checkout Page', 'cu-copper-payment-gateway' ),
-				'default'     => __( 'Pay with Copper (Cu)', 'cu-copper-payment-gateway' ),
+				'description' => __( 'Title Shown on Checkout Page', 'cu-copper-payment-gateway' ),
+				'default'     => __( 'Pay with ERC20 peg63.546u Copper (Cu)', 'cu-copper-payment-gateway' ),
 				'desc_tip'    => true,
 			),
-			'description'      => array(
+			'description'     => array(
 				'title'       => __( 'Description', 'cu-copper-payment-gateway' ),
 				'type'        => 'textarea',
 				'description' => __( 'Description  will be shown at Checkout page', 'cu-copper-payment-gateway' ),
-				'default'     => __( 'Please make sure you already install Metamask and enable it.', 'cu-copper-payment-gateway' ),
+				'default'     => __( 'Ethereum ERC20 Token peg63.546u Copper (Cu) payment gateway.', 'cu-copper-payment-gateway' ),
 				'desc_tip'    => true,
 			),
-			'icon'             => array(
-				'title'       => __( 'Payment icon', 'cu-copper-payment-gateway' ),
-				'type'        => 'text',
-				'default'     => 'https://postimg.aliavv.com/newmbp/eb9ty.png',
-				'description' => __( 'Image Height: 25px', 'cu-copper-payment-gateway' ),
-			),
-			'gas_notice'       => array(
+			'gas_notice'      => array(
 				'title'       => __( 'Gas Notice', 'cu-copper-payment-gateway' ),
 				'type'        => 'textarea',
-				'default'     => __( 'Set a High Gas Price to speed up your transaction.', 'cu-copper-payment-gateway' ),
 				'description' => __( 'Tell to the customer to set a high gas price for speed up transaction.', 'cu-copper-payment-gateway' ),
+				'default'     => __( 'Set a High Gas Price to speed up your transaction.', 'cu-copper-payment-gateway' ),
 				'desc_tip'    => true,
 			),
-			'gas_limit'        => array(
-				'title'       => __( 'Gas Limit', 'cu-copper-payment-gateway' ),
-				'type'        => 'number',
-				'default'     => 1000,
-				'description' => __( 'Default gas limit, customer should change it.', 'cu-copper-payment-gateway' ),
-			),
-			'gen_title'        => array(
+			'gen_title'       => array(
 				'title' => __( 'General', 'cu-copper-payment-gateway' ),
 				'type'  => 'title',
 			),
-			'net'              => array(
-				'title'       => __( 'Net', 'cu-copper-payment-gateway' ),
-				'type'        => 'text',
-				'description' => __( 'mainnet, ropsten, kovan, rinkeby', 'cu-copper-payment-gateway' ),
-				'default'     => 'mainnetropsten',
-			),
-			'target_address'   => array(
+			'target_address'  => array(
 				'title'       => __( 'Wallet Address', 'cu-copper-payment-gateway' ),
 				'type'        => 'text',
 				'description' => __( 'Token will be transfered into this address', 'cu-copper-payment-gateway' ),
 				'desc_tip'    => true,
 			),
-			'contract_address' => array(
-				'title' => __( 'Contract Address', 'cu-copper-payment-gateway' ),
-				'type'  => 'text',
-			),
-			'abi_array'        => array(
-				'title'       => __( 'Contract ABI', 'cu-copper-payment-gateway' ),
-				'type'        => 'textarea',
-				'description' => __( 'You Can get ABI From Etherscan.io', 'cu-copper-payment-gateway' ),
+			'is_test_mode'    => array(
+				'title'       => __( 'Test Mode', 'cu-copper-payment-gateway' ),
+				'label'       => __( 'Enable', 'cu-copper-payment-gateway' ),
+				'type'        => 'checkbox',
+				'description' => __( 'If checked will be used Ropsten network.', 'cu-copper-payment-gateway' ),
 				'desc_tip'    => true,
 			),
-			'api_title'        => array(
+			'api_title'       => array(
 				'title'       => __( 'API', 'cu-copper-payment-gateway' ),
 				'type'        => 'title',
 				'description' => __( 'infura.io API', 'cu-copper-payment-gateway' ),
 			),
-			'api_id'           => array(
+			'api_id'          => array(
 				'title' => __( 'Project ID', 'cu-copper-payment-gateway' ),
 				'type'  => 'text',
 			),
-			'api_secret'       => array(
+			'api_secret'      => array(
 				'title' => __( 'Project Secret', 'cu-copper-payment-gateway' ),
 				'type'  => 'password',
 			),
-			'api_url'          => array(
+			'api_url'         => array(
 				'title' => __( 'API URL', 'cu-copper-payment-gateway' ),
 				'type'  => 'text',
 			),
+			'information'     => array(
+				'title'       => __( 'Information', 'cu-copper-payment-gateway' ),
+				'type'        => 'title',
+				'description' => __( '<a href="https://ropsten.etherscan.io/address/0xe93B988735f39647F4c5Fca724E3CEe543B386A9" target="_blank">Ropsten</a>', 'cu-copper-payment-gateway' )
+			),
+			'uninstall'       => array(
+				'title'       => __( 'Uninstall', 'cu-copper-payment-gateway' ),
+				'label'       => __( 'Clean Data', 'cu-copper-payment-gateway' ),
+				'type'        => 'checkbox',
+				'description' => __( '<b style="color:red">Be very carefull with this checkbox!</b> It will dlelete all saved configurations for this payment gateway. Also, it will delete all Ethereum Addresses bound to Accounts and TXs included in orders.', 'cu-copper-payment-gateway' ),
+			)
 
 		);
 	}
@@ -238,7 +235,6 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		 */
 		if ( $order->needs_payment() ) {
 			$shortcode = '[cupay_connect_addresses order-id="' . $order_id . '"]';
-			// $shortcode = '[cupay_connect_addresses]';
 			echo do_shortcode( $shortcode );
 		} else {
 			include CU_ABSPATH . '/templates/order-payed.php';
@@ -251,17 +247,46 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 
 	}
 
+	public function get_icon() {
+		return '<img src="' . CU_URL . '/assets/img/cu-icon.png' . '" alt="' . esc_attr( $this->get_title() ) . '" />';
+	}
+
 	public function save_fields() {
 		if ( $_POST['_wp_http_referer'] !== '/wp-admin/admin.php?page=wc-settings&tab=checkout&section=cupay_erc20' ) {
 			return;
+		}
+
+		if ( $this->uninstall === 'yes' ) {
+			cu_uninstall();
+			$this->settings['title']          = __( 'Pay with ERC20 peg63.546u Copper (Cu)', 'cu-copper-payment-gateway' );
+			$this->settings['description']    = __( 'Ethereum ERC20 Token peg63.546u Copper (Cu) payment gateway.', 'cu-copper-payment-gateway' );
+			$this->settings['gas_notice']     = __( 'Set a High Gas Price to speed up your transaction.', 'cu-copper-payment-gateway' );
+			$this->settings['target_address'] = __( 'Token will be transfered into this address', 'cu-copper-payment-gateway' );
+			$this->settings['is_test_mode']   = 'no';
+			$this->settings['api_id']         = '';
+			$this->settings['api_secret']     = '';
+			$this->settings['api_url']        = '';
+			$this->settings['uninstall']      = 'no';
+
+			return;
+		}
+
+		if ( $this->is_test_mode === 'no' ) {
+			/* ToDo To be changed*/
+			$this->abi_array        = '[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"tokenOwner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_from","type":"address"},{"indexed":true,"internalType":"address","name":"_to","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"_totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"acceptOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"tokenOwner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"remaining","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"success","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"tokens","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"approveAndCall","outputs":[{"internalType":"bool","name":"success","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"tokenOwner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"balance","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"newOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"a","type":"uint256"},{"internalType":"uint256","name":"b","type":"uint256"}],"name":"safeAdd","outputs":[{"internalType":"uint256","name":"c","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"a","type":"uint256"},{"internalType":"uint256","name":"b","type":"uint256"}],"name":"safeDiv","outputs":[{"internalType":"uint256","name":"c","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"a","type":"uint256"},{"internalType":"uint256","name":"b","type":"uint256"}],"name":"safeMul","outputs":[{"internalType":"uint256","name":"c","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"a","type":"uint256"},{"internalType":"uint256","name":"b","type":"uint256"}],"name":"safeSub","outputs":[{"internalType":"uint256","name":"c","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"success","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"tokenAddress","type":"address"},{"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"transferAnyERC20Token","outputs":[{"internalType":"bool","name":"success","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"success","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
+			$this->net              = 'ropsten';
+			$this->contract_address = '0xe93B988735f39647F4c5Fca724E3CEe543B386A9';
+		} else {
+			$this->abi_array        = '[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"tokenOwner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_from","type":"address"},{"indexed":true,"internalType":"address","name":"_to","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"_totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"acceptOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"tokenOwner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"remaining","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"success","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"tokens","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"approveAndCall","outputs":[{"internalType":"bool","name":"success","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"tokenOwner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"balance","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"newOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"a","type":"uint256"},{"internalType":"uint256","name":"b","type":"uint256"}],"name":"safeAdd","outputs":[{"internalType":"uint256","name":"c","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"a","type":"uint256"},{"internalType":"uint256","name":"b","type":"uint256"}],"name":"safeDiv","outputs":[{"internalType":"uint256","name":"c","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"a","type":"uint256"},{"internalType":"uint256","name":"b","type":"uint256"}],"name":"safeMul","outputs":[{"internalType":"uint256","name":"c","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"a","type":"uint256"},{"internalType":"uint256","name":"b","type":"uint256"}],"name":"safeSub","outputs":[{"internalType":"uint256","name":"c","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"success","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"tokenAddress","type":"address"},{"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"transferAnyERC20Token","outputs":[{"internalType":"bool","name":"success","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokens","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"success","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
+			$this->net              = 'ropsten';
+			$this->contract_address = '0xe93B988735f39647F4c5Fca724E3CEe543B386A9';
 		}
 
 		$options = [
 			[ 'cu_copper_target_address', $this->target_address ],
 			[ 'cu_copper_contract_address', $this->contract_address ],
 			[ 'cu_copper_abi_array', $this->abi_array ],
-			[ 'cu_copper_gas_limit', $this->gas_limit ],
-			[ 'cu_etherium_net', $this->net ],
+			[ 'cu_ethereum_net', $this->net ],
 			[ 'cu_infura_api_id', $this->api_id ],
 			[ 'cu_infura_api_secret', $this->api_secret ],
 			[ 'cu_infura_api_url', $this->api_url ],

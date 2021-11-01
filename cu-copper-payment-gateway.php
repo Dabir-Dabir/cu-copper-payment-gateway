@@ -1,8 +1,8 @@
 <?php
 /*
- * Plugin Name: WooCommerce Cu (Copper) Payment Gateway
+ * Plugin Name: WooCommerce peg63.546u Copper Payment Gateway
  * Version: 0.0.1
- * Description: This Plugin will add Cu (Copper) ERC20 Token Payment Gateway
+ * Description: This Plugin will add ERC20 peg63.546u Copper (Cu) Token Payment Gateway to your WooCommerce store.
  * Author: Lado Mikiashvili.
  * Requires at least: 5.5
  */
@@ -19,6 +19,7 @@ if ( ! defined( 'CU_URL' ) ) {
 class CuCopperPaymentGateway {
 
 	public function __construct() {
+
 		$this->includes();
 		$this->set_hooks();
 
@@ -30,6 +31,7 @@ class CuCopperPaymentGateway {
 		include 'logs.php';
 		include 'classes/class-cupay-payment.php';
 		include 'ajax.php';
+		include 'uninstall.php';
 	}
 
 	public function set_hooks() {
@@ -38,14 +40,23 @@ class CuCopperPaymentGateway {
 		add_action( 'plugins_loaded', [ $this, 'init_gateway_class' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'register_payment_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_payment_scripts' ], 20 );
+		add_action( 'woocommerce_available_payment_gateways', [ $this, 'disable_gateway_for_unlogged_users' ] );
+	}
+
+	function disable_gateway_for_unlogged_users( $args ) {
+		if ( ! is_user_logged_in() && isset( $args['cupay_erc20'] ) ) {
+			unset( $args['cupay_erc20'] );
+		}
+
+		return $args;
 	}
 
 	/**
 	 * Load JavaScript for payment at the front desk
 	 */
 	public function register_payment_scripts(): void {
-		wp_register_script( 'cupay_web3', CU_URL . '/assets/web3.min.js', array( 'jquery' ), 1.1, true );
-		wp_register_script( 'cupay_payment', CU_URL . '/assets/payment.js', array(
+		wp_register_script( 'cupay_web3', CU_URL . '/assets/js/web3.min.js', array( 'jquery' ), 1.1, true );
+		wp_register_script( 'cupay_payment', CU_URL . '/assets/js/payment.js', array(
 			'jquery',
 			'cupay_web3'
 		), 1.0, true );
@@ -70,14 +81,14 @@ class CuCopperPaymentGateway {
 	/**
 	 * Add a new Gateway
 	 */
+	public function init_gateway_class() {
+		include 'classes/class-cupay-wc-copper-gateway.php';
+	}
+
 	public function add_gateway_class( $gateways ) {
 		$gateways[] = 'Cupay_WC_Copper_Gateway';
 
 		return $gateways;
-	}
-
-	public function init_gateway_class() {
-		include 'classes/class-cupay-wc-copper-gateway.php';
 	}
 
 	public function connect_addresses_shortcode( $atts ) {

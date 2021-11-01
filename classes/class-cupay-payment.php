@@ -30,7 +30,7 @@ class Cupay_Payment {
 	private bool $not_double_payment = false;
 
 	public function send_infura_request( string $method, array $params = [] ) {
-		$api_url = "https://" . get_option( 'cu_etherium_net' ) . ".infura.io/v3/" . get_option( 'cu_infura_api_id' );
+		$api_url = "https://" . get_option( 'cu_ethereum_net' ) . ".infura.io/v3/" . get_option( 'cu_infura_api_id' );
 		$ch      = curl_init( $api_url );
 		$data    = array(
 			'jsonrpc' => '2.0',
@@ -145,11 +145,12 @@ class Cupay_Payment {
 
 		if ( ! $this->not_double_payment ) {
 
-			$query     = new WC_Order_Query( [
+			$query = new WC_Order_Query( [
 				'limit'     => - 1,
 				'return'    => 'ids',
 				'date_paid' => '>' . $block['timestamp'],
-				'status'    => 'completed'
+				'status'    => 'completed',
+				'meta_key'  => 'cu_tx'
 			] );
 			try {
 				$order_ids = $query->get_orders();
@@ -159,7 +160,8 @@ class Cupay_Payment {
 						return false;
 					}
 				}
-			} catch ( Exception $e) {}
+			} catch ( Exception $e ) {
+			}
 
 			$this->not_double_payment = true;
 		}
@@ -246,12 +248,14 @@ class Cupay_Payment {
 			return false;
 		}
 
-		if ($this->check_block()) {
+		if ( ! $this->check_block() ) {
 			return false;
 		}
 
-		$order = wc_get_order($order_id);
-		$order->payment_complete();
+		$order = wc_get_order( $order_id );
+		if ( ! $order->payment_complete() ) {
+			return false;
+		}
 
 		return true;
 	}
