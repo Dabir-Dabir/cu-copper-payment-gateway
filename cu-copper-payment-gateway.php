@@ -31,7 +31,7 @@ class CuCopperPaymentGateway {
 	}
 
 	public function admin_notices() {
-		echo '<div class="error"><h3>' . __( 'You need to <strong>install and activate</strong> <a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>', 'cu-copper-payment-gateway' ) . '</h3></div>';
+		echo '<div class="error"><h4>' . __( '<b>peg63.546u Copper Payment</b>: You need to <strong>install and activate</strong> <a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>', 'cu-copper-payment-gateway' ) . '</h4></div>';
 	}
 
 	public function includes() {
