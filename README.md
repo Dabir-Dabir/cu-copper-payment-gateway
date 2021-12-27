@@ -1,1 +1,0 @@
-This Plugin will add ERC20 peg63.546u Copper (CU) Token Payment Gateway to your store.
