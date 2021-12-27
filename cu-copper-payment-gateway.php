@@ -3,6 +3,7 @@
 Plugin Name: WooCommerce peg63.546u Copper Payment Gateway
 Version: 0.0.1
 Description: This Plugin will add ERC20 peg63.546u Copper (CU) Token Payment Gateway to your WooCommerce store.
+Plugin URI: https://wordpress.org/plugins/woocommerce-peg63-546u-copper-payment-gateway
 WC requires at least: 5.5.1
 WC tested up to: 5.6.0
 Requires at least: 5.5
