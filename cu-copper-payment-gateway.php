@@ -1,11 +1,17 @@
 <?php
 /*
- * Plugin Name: WooCommerce peg63.546u Copper Payment Gateway
- * Version: 0.0.1
- * Description: This Plugin will add ERC20 peg63.546u Copper (Cu) Token Payment Gateway to your WooCommerce store.
- * Author: firstRateiT.
- * Requires at least: 5.5
- */
+Plugin Name: WooCommerce peg63.546u Copper Payment Gateway
+Version: 0.0.1
+Description: This Plugin will add ERC20 peg63.546u Copper (CU) Token Payment Gateway to your WooCommerce store.
+WC requires at least: 5.5.1
+WC tested up to: 5.6.0
+Requires at least: 5.5
+Author: firstRateiT
+Author URI: https://firstrateit.com
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: cu-copper-payment-gateway
+*/
 
 defined( 'ABSPATH' ) || exit;
 

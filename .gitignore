@@ -1,6 +1,5 @@
-/vendor/
 /log/
 /composer.lock
 */package-lock.json
-*/node_modules/
+.gitignore
 
