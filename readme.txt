@@ -1,7 +1,6 @@
-=== peg63.546u Copper Payment Gateway ===
+=== Payment Gateway for peg63.546u Copper on WooCommerce ===
 Contributors: firstrateit
 Tags: woocommerce, payment, gateway, erc20, token, ethereum
-Donate link: http://example.com/
 Requires at least: 5.5
 Tested up to: 5.6
 Requires PHP: 7.4
