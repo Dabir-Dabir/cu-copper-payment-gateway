@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
         "ajaxurl": "/wp-admin/admin-ajax.php",
         "displayMessages": {
             "install-metamask": "<?php echo __( 'Please Install MetaMask at First', 'cu-copper-payment-gateway' ) ?>",
-            "no-addresses": "<?php echo $copper_payment_gateway_no_addresses_txt ?>",
+            "no-addresses": "<?php echo esc_html($copper_payment_gateway_no_addresses_txt) ?>",
             "connect-metamask-btn": "<?php echo __( 'Connetc MetaMask', 'cu-copper-payment-gateway' ) ?>",
             "install-metamask-btn": "<?php echo __( 'Install MetaMask', 'cu-copper-payment-gateway' ) ?>",
             "bound-account-btn": "<?php echo __( 'Bound Account', 'cu-copper-payment-gateway' ) ?>",
@@ -30,11 +30,11 @@ defined( 'ABSPATH' ) || exit;
 	$order = wc_get_order( $order_id );
 	?>
     copperPaymentGatewayHasButton = true;
-    copperPaymentGatewayData.amount = <?php echo (string) $order->get_total() ?>;
-    copperPaymentGatewayData.orderId = <?php echo $order_id ?>;
-    copperPaymentGatewayData.contractAddress = "<?php echo get_option( 'copper_payment_gateway_copper_contract_address' ) ?>";
-    copperPaymentGatewayData.abiArray = <?php echo get_option( 'copper_payment_gateway_copper_abi_array', [] ) ?>;
-    copperPaymentGatewayData.targetAddress = "<?php echo get_option( 'copper_payment_gateway_copper_target_address' ) ?>";
+    copperPaymentGatewayData.amount = <?php echo esc_html($order->get_total()) ?>;
+    copperPaymentGatewayData.orderId = <?php echo esc_html($order_id) ?>;
+    copperPaymentGatewayData.contractAddress = "<?php echo esc_html(get_option( 'copper_payment_gateway_copper_contract_address' )) ?>";
+    copperPaymentGatewayData.abiArray = <?php echo esc_html(get_option( 'copper_payment_gateway_copper_abi_array', [] )) ?>;
+    copperPaymentGatewayData.targetAddress = "<?php echo esc_html(get_option( 'copper_payment_gateway_copper_target_address' )) ?>";
 
 
     jQuery(window).load(() => {
@@ -60,7 +60,7 @@ defined( 'ABSPATH' ) || exit;
             <span class="copper-payment-gateway__current-provider-account" id="copper-payment-gateway__current-provider-account">...</span>
         </h5>
 
-        <h6 class="cu-connected-addresses__gas-notice"><?php echo get_option('copper_payment_gateway_gas_notice') ?></h6>
+        <h6 class="cu-connected-addresses__gas-notice"><?php echo esc_html(get_option('copper_payment_gateway_gas_notice')) ?></h6>
 
         <button class="copper-payment-gateway__pay-button" id="copper-payment-gateway__pay-button"
                 onclick="copper_payment_gatewayPay(copperPaymentGatewayData)">
@@ -76,16 +76,16 @@ defined( 'ABSPATH' ) || exit;
 		<?php if ( is_array( $copper_payment_gateway_addresses ) && count( $copper_payment_gateway_addresses ) > 0 ) : ?>
             <ul class="cu-connected-addresses__list">
 				<?php foreach ( $copper_payment_gateway_addresses as $address ) : ?>
-                    <li class="cu-connected-addresses__list" id="cu-address-<?php echo $address ?>"
-                        data-cu-address="<?php echo $address ?>">
-                        <span class="cu-connected-addresses__span"><?php echo $address ?></span>
+                    <li class="cu-connected-addresses__list" id="cu-address-<?php echo esc_html($address) ?>"
+                        data-cu-address="<?php echo esc_html($address) ?>">
+                        <span class="cu-connected-addresses__span"><?php echo esc_html($address) ?></span>
                         <button class="cu-connected-addresses__delete-button"
-                                onclick="copper_payment_gatewayRemoveAddress('<?php echo $address ?>',copperPaymentGatewayData)">X</button>
+                                onclick="copper_payment_gatewayRemoveAddress('<?php echo esc_html($address) ?>',copperPaymentGatewayData)">X</button>
                     </li>
 				<?php endforeach; ?>
             </ul>
 		<?php else : ?>
-            <div class="cu-connected-addresses__empty"><?php echo $copper_payment_gateway_no_addresses_txt ?></div>
+            <div class="cu-connected-addresses__empty"><?php echo esc_html($copper_payment_gateway_no_addresses_txt) ?></div>
 		<?php endif; ?>
     </div>
 
