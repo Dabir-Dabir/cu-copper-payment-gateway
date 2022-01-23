@@ -7,7 +7,7 @@ $gray: #e4e4e4;
 $dark: #4a4a4a;
 
 
-#cu-pay.cu-pay {
+#copper-payment-gateway.copper-payment-gateway {
   padding: 0 50px 30px;
   background: $gray;
   color: #000000;
@@ -17,7 +17,7 @@ $dark: #4a4a4a;
     box-sizing: border-box;
   }
 
-  .cu-pay {
+  .copper-payment-gateway {
     &__current-provider {
       margin: 0;
       padding-top: 50px;
@@ -71,7 +71,7 @@ $dark: #4a4a4a;
     }
   }
 
-  .cu-connected-addresses {
+  .copper-payment-gateway-connected-addresses {
     padding-top: 50px;
 
     &__title {

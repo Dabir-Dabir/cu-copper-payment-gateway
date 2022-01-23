@@ -274,7 +274,7 @@ async function copper_payment_gatewayPay(payData) {
     let accounts = await ethereum.request({method: 'eth_requestAccounts'});
     let current_account = accounts[0];
     if (!cuAddresses.includes(current_account)) {
-        copper_payment_gatewayRequestSignature(payData);
+        await copper_payment_gatewayRequestSignature(payData);
     } else {
         copper_payment_gatewayRequestPayment(payData);
     }
