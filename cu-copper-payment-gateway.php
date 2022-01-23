@@ -124,12 +124,12 @@ class CuCopperPaymentGateway {
 		}
 
 		ob_start(); ?>
-        <h2><?= __( 'What data we save?', 'cu-copper-payment-gateway' ) ?></h2>
-        <p><?= __( 'If you bound the Ethereum address(es) to your account we will save it (them) until you remove it (them).', 'cu-copper-payment-gateway' ) ?></p>
-        <h2><?= __( 'Why do we save your Ethereum Address(es)?', 'cu-copper-payment-gateway' ) ?></h2>
-        <p><?= __( 'It\'s (they\'re) used to identify the payer of the order.', 'cu-copper-payment-gateway' ) ?></p>
+        <h2><?php echo __( 'What data we save?', 'cu-copper-payment-gateway' ) ?></h2>
+        <p><?php echo __( 'If you bound the Ethereum address(es) to your account we will save it (them) until you remove it (them).', 'cu-copper-payment-gateway' ) ?></p>
+        <h2><?php echo __( 'Why do we save your Ethereum Address(es)?', 'cu-copper-payment-gateway' ) ?></h2>
+        <p><?php echo __( 'It\'s (they\'re) used to identify the payer of the order.', 'cu-copper-payment-gateway' ) ?></p>
         <p class="privacy-policy-tutorial"><strong>
-				<?= __( 'Do not delete your Ethereum Account until all payments are complete, or you may lose your payment!', 'cu-copper-payment-gateway' ) ?>
+				<?php echo __( 'Do not delete your Ethereum Account until all payments are complete, or you may lose your payment!', 'cu-copper-payment-gateway' ) ?>
             </strong></p>
 		<?php
 		$content = ob_get_clean();
