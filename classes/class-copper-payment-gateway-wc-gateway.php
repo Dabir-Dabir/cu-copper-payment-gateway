@@ -4,10 +4,10 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Woocommerce Copper payment gateway class
  */
-class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
+class Copper_Payment_Gateway_WC_Gateway extends WC_Payment_Gateway {
 
 	/**
-	 * @var Cupay_WC_Copper_Gateway
+	 * @var Copper_Payment_Gateway_WC_Gateway
 	 */
 	private static $_instance;
 	private string $abi_array;
@@ -19,7 +19,7 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	private string $api_url;
 
 	public function __construct() {
-		$this->id                 = 'cupay_erc20';
+		$this->id                 = 'copper_payment_gateway_erc20';
 		$this->title              = __( 'Pay with ERC20 peg63.546u Copper (Cu)', 'cu-copper-payment-gateway' );
 		$this->method_title       = __( 'ERC20 peg63.546u Copper (Cu)', 'cu-copper-payment-gateway' );
 		$this->order_button_text  = __( 'Pay with Copper', 'cu-copper-payment-gateway' );
@@ -75,10 +75,10 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	 * Load JavaScript for payment at the front desk
 	 */
 	public function enqueue_payment_scripts(): void {
-		wp_enqueue_style( 'cupay_style' );
+		wp_enqueue_style( 'copper_payment_gateway_style' );
 
-		wp_enqueue_script( 'cupay_web3' );
-		wp_enqueue_script( 'cupay_payment' );
+		wp_enqueue_script( 'copper_payment_gateway_web3' );
+		wp_enqueue_script( 'copper_payment_gateway_payment' );
 	}
 
 	/**
@@ -177,13 +177,6 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * No form verification is done because there is no form set on the checkout page.
-	 */
-	public function validate_fields(): bool {
-		return true;
-	}
-
-	/**
 	 * The next step on the user checkout page
 	 */
 	public function process_payment( $order_id ): array {
@@ -204,8 +197,8 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		$customer = $order->get_user();
 
 		// Set user secret password for Bound signature
-		if ( $customer && get_user_meta( $customer->ID, 'cu_eth_token', true ) == '' ) {
-			update_user_meta( $customer->ID, 'cu_eth_token', wp_generate_password( 6, false ) );
+		if ( $customer && get_user_meta( $customer->ID, 'copper_payment_gateway_eth_token', true ) === '' ) {
+			update_user_meta( $customer->ID, 'copper_payment_gateway_eth_token', wp_generate_password( 6, false ) );
 		}
 
 		/**
@@ -222,7 +215,7 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 	 */
 	public function do_ssl_check(): void {
 		if ( ( $this->enabled === "yes" ) && get_option( 'woocommerce_force_ssl_checkout' ) === "no" ) {
-			echo "<div class=\"error\"><p>" . sprintf( __( "<strong>%s</strong> is enabled and WooCommerce is not forcing the SSL certificate on your checkout page. Please ensure that you have a valid SSL certificate and that you are <a href=\"%s\">forcing the checkout pages to be secured.</a>" ), $this->method_title, admin_url( 'admin.php?page=wc-settings&tab=checkout' ) ) . "</p></div>";
+			echo "<div class=\"error\"><p>" . sprintf( __( '<strong>%s</strong> is enabled and WooCommerce is not forcing the SSL certificate on your checkout page. Please ensure that you have a valid SSL certificate and that you are <a href="%s">forcing the checkout pages to be secured.</a>', 'cu-copper-payment-gateway' ), $this->method_title, admin_url( 'admin.php?page=wc-settings&tab=checkout' ) ) . "</p></div>";
 		}
 	}
 
@@ -243,31 +236,31 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		 * Monitor whether the order needs to be paid
 		 */
 		if ( $order->needs_payment() ) {
-			$shortcode = '[cupay_connect_addresses order-id="' . $order_id . '"]';
+			$shortcode = '[copper_payment_gateway_connect_addresses order-id="' . $order_id . '"]';
 			echo do_shortcode( $shortcode );
 		} else {
-			include CU_ABSPATH . '/templates/order-payed.php';
+			include COPPER_PAYMENT_GATEWAY_ABSPATH . '/templates/order-payed.php';
 		}
 
 	}
 
 	public function account_ethereum_addresses(): void {
 		if ( is_edit_account_page() ) {
-			echo do_shortcode( '[cupay_connect_addresses]' );
+			echo do_shortcode( '[copper_payment_gateway_connect_addresses]' );
 		}
 	}
 
 	public function get_icon() {
-		return '<img src="' . CU_URL . '/assets/img/cu-icon.png' . '" alt="' . esc_attr( $this->get_title() ) . '" />';
+		return '<img src="' . COPPER_PAYMENT_GATEWAY_URL . '/assets/img/cu-icon.png' . '" alt="' . esc_attr( $this->get_title() ) . '" />';
 	}
 
 	public function save_fields() {
-		if ( $_POST['_wp_http_referer'] !== '/wp-admin/admin.php?page=wc-settings&tab=checkout&section=cupay_erc20' ) {
+		if ( $_POST['_wp_http_referer'] !== '/wp-admin/admin.php?page=wc-settings&tab=checkout&section=copper_payment_gateway_erc20' ) {
 			return;
 		}
 
 		if ( $this->uninstall === 'yes' ) {
-			cu_uninstall();
+			copper_payment_gateway_uninstall();
 			$this->settings['title']          = __( 'Pay with ERC20 peg63.546u Copper (Cu)', 'cu-copper-payment-gateway' );
 			$this->settings['description']    = __( 'Ethereum ERC20 Token peg63.546u Copper (Cu) payment gateway.', 'cu-copper-payment-gateway' );
 			$this->settings['gas_notice']     = __( 'Set a High Gas Price to speed up your transaction.', 'cu-copper-payment-gateway' );
@@ -293,14 +286,14 @@ class Cupay_WC_Copper_Gateway extends WC_Payment_Gateway {
 		}
 
 		$options = [
-			[ 'cu_gas_notice', $this->gas_notice ],
-			[ 'cu_copper_target_address', $this->target_address ],
-			[ 'cu_copper_contract_address', $this->contract_address ],
-			[ 'cu_copper_abi_array', $this->abi_array ],
-			[ 'cu_ethereum_net', $this->net ],
-			[ 'cu_infura_api_id', $this->api_id ],
-			[ 'cu_infura_api_secret', $this->api_secret ],
-			[ 'cu_infura_api_url', $this->api_url ],
+			[ 'copper_payment_gateway_gas_notice', $this->gas_notice ],
+			[ 'copper_payment_gateway_copper_target_address', $this->target_address ],
+			[ 'copper_payment_gateway_copper_contract_address', $this->contract_address ],
+			[ 'copper_payment_gateway_copper_abi_array', $this->abi_array ],
+			[ 'copper_payment_gateway_ethereum_net', $this->net ],
+			[ 'copper_payment_gateway_infura_api_id', $this->api_id ],
+			[ 'copper_payment_gateway_infura_api_secret', $this->api_secret ],
+			[ 'copper_payment_gateway_infura_api_url', $this->api_url ],
 		];
 
 		foreach ( $options as [$option_name, $value] ) {

@@ -12,11 +12,11 @@ use kornrunner\Keccak;
 /**
  * @throws Exception
  */
-function cupay_pub_key_to_address( $pubkey ): string {
+function copper_payment_gateway_pub_key_to_address( $pubkey ): string {
 	return "0x" . substr( Keccak::hash( substr( hex2bin( $pubkey->encode( "hex" ) ), 1 ), 256 ), 24 );
 }
 
-function cupay_verify_signature( $message, $signature, $address ): bool {
+function copper_payment_gateway_verify_signature( $message, $signature, $address ): bool {
 	$msglen = strlen( $message );
 	try {
 		$hash = Keccak::hash( "\x19Ethereum Signed Message:\n{$msglen}{$message}", 256 );
@@ -40,17 +40,17 @@ function cupay_verify_signature( $message, $signature, $address ): bool {
 	}
 
 	try {
-		return $address == cupay_pub_key_to_address( $pubkey );
+		return $address == copper_payment_gateway_pub_key_to_address( $pubkey );
 	} catch ( Exception $e ) {
 		return false;
 	}
 }
 
-add_action( 'wp_ajax_cu_add_eth_address_to_account', 'cupay_add_eth_address_to_account' );
-function cupay_add_eth_address_to_account() {
-	if ( check_ajax_referer( 'cu_security', 'security' ) !== 1 ) {
+add_action( 'wp_ajax_copper_payment_gateway_add_eth_address_to_account', 'copper_payment_gateway_add_eth_address_to_account' );
+function copper_payment_gateway_add_eth_address_to_account() {
+	if ( check_ajax_referer( 'copper_payment_gateway_security', 'security' ) !== 1 ) {
 		$response = [
-			"action" => 'cu_add_eth_address_to_account',
+			"action" => 'copper_payment_gateway_add_eth_address_to_account',
 			"done"   => false,
 			"error"  => __( 'Weak security!', 'cu-copper-payment-gateway' ),
 		];
@@ -60,12 +60,12 @@ function cupay_add_eth_address_to_account() {
 	}
 
 	$user_id        = get_current_user_id();
-	$message        = get_user_meta( $user_id, 'cu_eth_token', true );
+	$message        = get_user_meta( $user_id, 'copper_payment_gateway_eth_token', true );
 	$sign           = sanitize_text_field( $_POST['sign'] );
 	$sender_address = sanitize_text_field( $_POST['sender'] );
-	if ( ! cupay_verify_signature( $message, $sign, $sender_address ) ) {
+	if ( ! copper_payment_gateway_verify_signature( $message, $sign, $sender_address ) ) {
 		$response = [
-			"action" => 'cu_add_eth_address_to_account',
+			"action" => 'copper_payment_gateway_add_eth_address_to_account',
 			"done"   => false,
 			"error"  => __( 'Incorrect signature!', 'cu-copper-payment-gateway' ),
 		];
@@ -74,13 +74,13 @@ function cupay_add_eth_address_to_account() {
 		die;
 	}
 
-	$user_addresses = get_user_meta( $user_id, 'cu_eth_addresses', true );
+	$user_addresses = get_user_meta( $user_id, 'copper_payment_gateway_eth_addresses', true );
 	if ( ! is_array( $user_addresses ) ) {
 		$user_addresses = [];
 	}
 	if ( in_array( $sender_address, $user_addresses ) ) {
 		$response = [
-			"action" => 'cu_add_eth_address_to_account',
+			"action" => 'copper_payment_gateway_add_eth_address_to_account',
 			"done"   => false,
 			"error"  => __( 'Already added!', 'cu-copper-payment-gateway' ),
 		];
@@ -89,10 +89,10 @@ function cupay_add_eth_address_to_account() {
 		die;
 	}
 	$user_addresses[]       = $sender_address;
-	$user_addresses_updated = update_user_meta( $user_id, 'cu_eth_addresses', $user_addresses );
+	$user_addresses_updated = update_user_meta( $user_id, 'copper_payment_gateway_eth_addresses', $user_addresses );
 	if ( ! $user_addresses_updated ) {
 		$response = [
-			"action" => 'cu_add_eth_address_to_account',
+			"action" => 'copper_payment_gateway_add_eth_address_to_account',
 			"done"   => false,
 			"error"  => __( 'Internal error!', 'cu-copper-payment-gateway' ),
 		];
@@ -102,7 +102,7 @@ function cupay_add_eth_address_to_account() {
 	}
 
 	$response = [
-		"action"  => 'cu_add_eth_address_to_account',
+		"action"  => 'copper_payment_gateway_add_eth_address_to_account',
 		"done"    => true,
 		"success" => __( 'Account added!', 'cu-copper-payment-gateway' ),
 		"account" => $sender_address
@@ -113,14 +113,14 @@ function cupay_add_eth_address_to_account() {
 }
 
 // add_action('init', function() {
-// 	update_user_meta( 2, 'cu_eth_addresses', '' );
+// 	update_user_meta( 2, 'copper_payment_gateway_eth_addresses', '' );
 // });
 
-add_action( 'wp_ajax_cu_remove_eth_address_from_account', 'cupay_cu_remove_eth_address_from_account' );
-function cupay_cu_remove_eth_address_from_account() {
-	if ( check_ajax_referer( 'cu_security', 'security' ) !== 1 ) {
+add_action( 'wp_ajax_copper_payment_gateway_remove_eth_address_from_account', 'copper_payment_gateway_copper_payment_gateway_remove_eth_address_from_account' );
+function copper_payment_gateway_copper_payment_gateway_remove_eth_address_from_account() {
+	if ( check_ajax_referer( 'copper_payment_gateway_security', 'security' ) !== 1 ) {
 		$response = [
-			"action" => 'cu_remove_eth_address_from_account',
+			"action" => 'copper_payment_gateway_remove_eth_address_from_account',
 			"done"   => false,
 			"error"  => __( 'Weak security!', 'cu-copper-payment-gateway' ),
 		];
@@ -132,10 +132,10 @@ function cupay_cu_remove_eth_address_from_account() {
 	$user_id = get_current_user_id();
 	$address = sanitize_text_field( $_POST['address'] );
 
-	$user_addresses = get_user_meta( $user_id, 'cu_eth_addresses', true );
+	$user_addresses = get_user_meta( $user_id, 'copper_payment_gateway_eth_addresses', true );
 	if ( ! is_array( $user_addresses ) || ! in_array( $address, $user_addresses ) ) {
 		$response = [
-			"action" => 'cu_remove_eth_address_from_account',
+			"action" => 'copper_payment_gateway_remove_eth_address_from_account',
 			"done"   => false,
 			"error"  => __( 'Didn\'t exist!', 'cu-copper-payment-gateway' ),
 		];
@@ -146,10 +146,10 @@ function cupay_cu_remove_eth_address_from_account() {
 
 	$array_needle_index = array_search( $address, $user_addresses );
 	array_splice($user_addresses, $array_needle_index, 1);
-	$user_addresses_updated = update_user_meta( $user_id, 'cu_eth_addresses', $user_addresses );
+	$user_addresses_updated = update_user_meta( $user_id, 'copper_payment_gateway_eth_addresses', $user_addresses );
 	if ( ! $user_addresses_updated ) {
 		$response = [
-			"action" => 'cu_remove_eth_address_from_account',
+			"action" => 'copper_payment_gateway_remove_eth_address_from_account',
 			"done"   => false,
 			"error"  => __( 'Internal error!', 'cu-copper-payment-gateway' ),
 		];
@@ -159,7 +159,7 @@ function cupay_cu_remove_eth_address_from_account() {
 	}
 
 	$response = [
-		"action"  => 'cu_remove_eth_address_from_account',
+		"action"  => 'copper_payment_gateway_remove_eth_address_from_account',
 		"done"    => true,
 		"success" => __( 'Account removed!', 'cu-copper-payment-gateway' ),
 		"account" => $address
@@ -169,11 +169,11 @@ function cupay_cu_remove_eth_address_from_account() {
 	die;
 }
 
-add_action( 'wp_ajax_cu_check_transaction', 'cupay_cu_check_transaction' );
-function cupay_cu_check_transaction() {
-	if ( check_ajax_referer( 'cu_security', 'security' ) !== 1 ) {
+add_action( 'wp_ajax_copper_payment_gateway_check_transaction', 'copper_payment_gateway_copper_payment_gateway_check_transaction' );
+function copper_payment_gateway_copper_payment_gateway_check_transaction() {
+	if ( check_ajax_referer( 'copper_payment_gateway_security', 'security' ) !== 1 ) {
 		$response = [
-			"action" => 'cu_check_transaction',
+			"action" => 'copper_payment_gateway_check_transaction',
 			"done"   => false,
 			"error"  => __( 'Weak security!', 'cu-copper-payment-gateway' ),
 		];
@@ -185,10 +185,10 @@ function cupay_cu_check_transaction() {
 	$order_id = sanitize_text_field( $_POST['order_id'] );
 	$tx       = sanitize_text_field( $_POST['tx'] );
 
-	$payment = new Cupay_Payment();
+	$payment = new Copper_Payment_Gateway_Payment();
 	if ( ! $payment->check_transaction( $tx, $order_id ) ) {
 		$response = [
-			"action" => 'cu_check_transaction',
+			"action" => 'copper_payment_gateway_check_transaction',
 			"done"   => false,
 			"error"  => __( 'Unknown error!', 'cu-copper-payment-gateway' ),
 		];
@@ -201,7 +201,7 @@ function cupay_cu_check_transaction() {
 	}
 
 	$response = [
-		"action"  => 'cu_check_transaction',
+		"action"  => 'copper_payment_gateway_check_transaction',
 		"done"    => true,
 		"success" => __( 'Order Payed!', 'cu-copper-payment-gateway' ),
 	];

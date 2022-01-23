@@ -16,11 +16,11 @@ Text Domain: cu-copper-payment-gateway
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! defined( 'CU_ABSPATH' ) ) {
-	define( 'CU_ABSPATH', __DIR__ );
+if ( ! defined( 'COPPER_PAYMENT_GATEWAY_ABSPATH' ) ) {
+	define( 'COPPER_PAYMENT_GATEWAY_ABSPATH', __DIR__ );
 }
-if ( ! defined( 'CU_URL' ) ) {
-	define( "CU_URL", plugins_url( '', __FILE__ ) );
+if ( ! defined( 'COPPER_PAYMENT_GATEWAY_URL' ) ) {
+	define( "COPPER_PAYMENT_GATEWAY_URL", plugins_url( '', __FILE__ ) );
 }
 
 class CuCopperPaymentGateway {
@@ -34,22 +34,22 @@ class CuCopperPaymentGateway {
 		$this->includes();
 		$this->set_hooks();
 
-		add_shortcode( 'cupay_connect_addresses', [ $this, 'connect_addresses_shortcode' ] );
+		add_shortcode( 'copper_payment_gateway_connect_addresses', [ $this, 'connect_addresses_shortcode' ] );
 	}
 
-	public function admin_notices() {
-		echo '<div class="error"><h4>' . __( '<b>peg63.546u Copper Payment</b>: You need to <strong>install and activate</strong> <a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>', 'cu-copper-payment-gateway' ) . '</h4></div>';
+	public function admin_notices(): void {
+		echo '<div class="error"><h4>' . __( '<b>Payment Gateway for peg63.546u Copper on WooCommerce</b>: You need to <strong>install and activate</strong> <a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a>', 'cu-copper-payment-gateway' ) . '</h4></div>';
 	}
 
-	public function includes() {
+	public function includes(): void {
 		include 'vendor/autoload.php';
 		include 'logs.php';
-		include 'classes/class-cupay-payment.php';
+		include 'classes/class-copper-payment-gateway-payment.php';
 		include 'ajax.php';
 		include 'uninstall.php';
 	}
 
-	public function set_hooks() {
+	public function set_hooks(): void {
 		add_action( 'admin_init', [ $this, 'add_privacy_suggestion_text' ] );
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ $this, 'add_settings_link' ] );
 		add_filter( 'woocommerce_payment_gateways', [ $this, 'add_gateway_class' ] );
@@ -59,9 +59,9 @@ class CuCopperPaymentGateway {
 		add_action( 'woocommerce_available_payment_gateways', [ $this, 'disable_gateway_for_unlogged_users' ] );
 	}
 
-	function disable_gateway_for_unlogged_users( $args ) {
-		if ( ! is_user_logged_in() && isset( $args['cupay_erc20'] ) ) {
-			unset( $args['cupay_erc20'] );
+	public function disable_gateway_for_unlogged_users( $args ) {
+		if ( ! is_user_logged_in() && isset( $args['copper_payment_gateway_erc20'] ) ) {
+			unset( $args['copper_payment_gateway_erc20'] );
 		}
 
 		return $args;
@@ -71,19 +71,19 @@ class CuCopperPaymentGateway {
 	 * Load JavaScript for payment at the front desk
 	 */
 	public function register_payment_scripts(): void {
-		wp_register_style( 'cupay_style', CU_URL . '/assets/css/cupay.css' );
+		wp_register_style( 'copper_payment_gateway_style', COPPER_PAYMENT_GATEWAY_URL . '/assets/css/copper_payment_gateway.css' );
 
-		wp_register_script( 'cupay_web3', CU_URL . '/assets/js/web3.min.js', array( 'jquery' ), 1.1, true );
-		wp_register_script( 'cupay_payment', CU_URL . '/assets/js/payment.js', array(
+		wp_register_script( 'copper_payment_gateway_web3', COPPER_PAYMENT_GATEWAY_URL . '/assets/js/web3.min.js', array( 'jquery' ), 1.1, true );
+		wp_register_script( 'copper_payment_gateway_payment', COPPER_PAYMENT_GATEWAY_URL . '/assets/js/payment.js', array(
 			'jquery',
-			'cupay_web3'
+			'copper_payment_gateway_web3'
 		), 1.0, true );
 	}
 
 	public function enqueue_payment_scripts(): void {
 		if ( is_edit_account_page() ) {
-			wp_enqueue_style( 'cupay_style' );
-			wp_enqueue_script( 'cupay_payment' );
+			wp_enqueue_style( 'copper_payment_gateway_style' );
+			wp_enqueue_script( 'copper_payment_gateway_payment' );
 		}
 	}
 
@@ -100,25 +100,25 @@ class CuCopperPaymentGateway {
 	/**
 	 * Add a new Gateway
 	 */
-	public function init_gateway_class() {
-		include 'classes/class-cupay-wc-copper-gateway.php';
+	public function init_gateway_class(): void {
+		include 'classes/class-copper-payment-gateway-wc-gateway.php';
 	}
 
 	public function add_gateway_class( $gateways ) {
-		$gateways[] = 'Cupay_WC_Copper_Gateway';
+		$gateways[] = 'Copper_Payment_Gateway_WC_Gateway';
 
 		return $gateways;
 	}
 
-	public function connect_addresses_shortcode( $atts ) {
+	public function connect_addresses_shortcode( $atts ): void {
 		$order_id = false;
 		if ( isset( $atts['order-id'] ) ) {
 			$order_id = (int) $atts['order-id'];
 		}
-		include CU_ABSPATH . '/templates/pay-order.php';
+		include COPPER_PAYMENT_GATEWAY_ABSPATH . '/templates/pay-order.php';
 	}
 
-	public function add_privacy_suggestion_text() {
+	public function add_privacy_suggestion_text(): void {
 		if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
 			return;
 		}

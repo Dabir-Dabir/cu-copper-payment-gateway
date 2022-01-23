@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class Cupay_Payment {
+class Copper_Payment_Gateway_Payment {
 	public string $erc20_method = "a9059cbb";
 	public string $error;
 	public string $tx;
@@ -30,7 +30,7 @@ class Cupay_Payment {
 	private bool $not_double_payment = false;
 
 	public function send_infura_request( string $method, array $params = [] ) {
-		$api_url = "https://" . get_option( 'cu_ethereum_net' ) . ".infura.io/v3/" . get_option( 'cu_infura_api_id' );
+		$api_url = "https://" . get_option( 'copper_payment_gateway_ethereum_net' ) . ".infura.io/v3/" . get_option( 'copper_payment_gateway_infura_api_id' );
 		$ch      = curl_init( $api_url );
 		$data    = array(
 			'jsonrpc' => '2.0',
@@ -47,7 +47,11 @@ class Cupay_Payment {
 		$result = curl_exec( $ch );
 		curl_close( $ch );
 
-		$res = json_decode( $result, true );
+		try {
+			$res = json_decode( $result, true, 512, JSON_THROW_ON_ERROR );
+		} catch ( JsonException $e ) {
+			return false;
+		}
 		if ( ! is_array( $res ) ) {
 			return false;
 		}
@@ -73,15 +77,15 @@ class Cupay_Payment {
 	}
 
 	public function validate_transaction( $data, $order_id ) {
-		if ( strtolower( $data['symbol'] ) !== strtolower( get_option( 'cu_copper_contract_address' ) ) || strtolower( $data['receiver'] ) !== strtolower( get_option( 'cu_copper_target_address' ) ) ) {
+		if ( strtolower( $data['symbol'] ) !== strtolower( get_option( 'copper_payment_gateway_copper_contract_address' ) ) || strtolower( $data['receiver'] ) !== strtolower( get_option( 'copper_payment_gateway_copper_target_address' ) ) ) {
 			return false;
 		}
 		$order = wc_get_order( $order_id );
 		if ( (float) $data['amount'] !== (float) $order->get_total() ) {
 			return false;
 		}
-		$buyer_addresses = get_user_meta( get_current_user_id(), 'cu_eth_addresses', true );
-		if ( ! in_array( $data['sender'], $buyer_addresses ) ) {
+		$buyer_addresses = get_user_meta( get_current_user_id(), 'copper_payment_gateway_eth_addresses', true );
+		if ( ! in_array( $data['sender'], $buyer_addresses, true ) ) {
 			return false;
 		}
 
@@ -109,7 +113,7 @@ class Cupay_Payment {
 		}
 	}
 
-	public function get_block_hash() {
+	public function get_block_hash(): void {
 
 		$this->hash_counter ++;
 		$counter = $this->hash_counter;
@@ -150,12 +154,12 @@ class Cupay_Payment {
 				'return'    => 'ids',
 				'date_paid' => '>' . $block['timestamp'],
 				'status'    => 'completed',
-				'meta_key'  => 'cu_tx'
+				'meta_key'  => 'copper_payment_gateway_tx'
 			] );
 			try {
 				$order_ids = $query->get_orders();
 				foreach ( $order_ids as $id ) {
-					$order_tx = get_post_meta( $id, 'cu_tx', true );
+					$order_tx = get_post_meta( $id, 'copper_payment_gateway_tx', true );
 					if ( $order_tx === $this->tx ) {
 						return false;
 					}
@@ -195,7 +199,7 @@ class Cupay_Payment {
 			return false;
 		}
 
-		$tx_added_to_post = update_post_meta( $order_id, 'cu_tx', $tx );
+		$tx_added_to_post = update_post_meta( $order_id, 'copper_payment_gateway_tx', $tx );
 		if ( ! $tx_added_to_post ) {
 			return false;
 		}

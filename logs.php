@@ -3,7 +3,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Custom Logs
  */
-function cu_log( $log_msg, $is_error = false ) {
+function copper_payment_gateway_log( $log_msg, $is_error = false ) {
 	$log_message = "[" . date( 'Y-m-d H:i:s' ) . "] ";
 	if ( $is_error ) {
 		$log_message .= "!!!ERROR!!! ";
@@ -18,22 +18,22 @@ function cu_log( $log_msg, $is_error = false ) {
 	file_put_contents( $log_file_name, $log_message, FILE_APPEND );
 }
 
-function cu_log_dump( $log_msg, $title = false, $is_error = false ) {
+function copper_payment_gateway_log_dump( $log_msg, $title = false, $is_error = false ) {
 	if ( $title ) {
-		cu_log( $title );
+		copper_payment_gateway_log( $title );
 	}
 	ob_start();
 	var_dump( $log_msg );
 	$log_dump = ob_get_clean();
-	cu_log( $log_dump, $is_error );
+	copper_payment_gateway_log( $log_dump, $is_error );
 }
 
-function cu_log_export( $log_msg, $title = false, $is_error = false ) {
+function copper_payment_gateway_log_export( $log_msg, $title = false, $is_error = false ) {
 	if ( $title ) {
-		cu_log( $title );
+		copper_payment_gateway_log( $title );
 	}
 	ob_start();
 	var_export( $log_msg );
 	$log_dump = ob_get_clean();
-	cu_log( $log_dump, $is_error );
+	copper_payment_gateway_log( $log_dump, $is_error );
 }

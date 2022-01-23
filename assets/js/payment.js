@@ -1,7 +1,7 @@
 /**
  * Bond Ethereum address to account
  * */
-async function cupayRequestSignature(payData) {
+async function copper_payment_gatewayRequestSignature(payData) {
     let {message, displayMessages, security, ajaxurl} = payData;
     if (window.ethereum) {
         window.web3 = new Web3(ethereum);
@@ -14,7 +14,7 @@ async function cupayRequestSignature(payData) {
     } else if (window.web3) {
         window.web3 = new Web3(web3.currentProvider);
     } else {
-        let logsElement = document.getElementById('cu-pay__logs');
+        let logsElement = document.getElementById('copper-payment-gateway__logs');
         logsElement.innerHTML = displayMessages['install-metamask'];
         logsElement.classList.add('has_error');
         return;
@@ -35,23 +35,23 @@ async function cupayRequestSignature(payData) {
     }
 
     const data = {
-        'action': 'cu_add_eth_address_to_account',
+        'action': 'copper_payment_gateway_add_eth_address_to_account',
         'sign': sign,
         'sender': from,
         'security': security
     };
 
     jQuery.post(ajaxurl, data, function (response) {
-        cupayHandleRequestSignatureResponse(JSON.parse(response), payData);
+        copper_payment_gatewayHandleRequestSignatureResponse(JSON.parse(response), payData);
     });
 }
 
-function cupayHandleRequestSignatureResponse(data, payData) {
-    let logsElement = document.getElementById('cu-pay__logs');
+function copper_payment_gatewayHandleRequestSignatureResponse(data, payData) {
+    let logsElement = document.getElementById('copper-payment-gateway__logs');
     let connectedAddresses = document.getElementById('cu-connected-addresses');
     let connectedAddressesList = document.getElementsByClassName('cu-connected-addresses__list')[0];
 
-    if (data['action'] !== 'cu_add_eth_address_to_account') {
+    if (data['action'] !== 'copper_payment_gateway_add_eth_address_to_account') {
         return;
     }
 
@@ -80,7 +80,7 @@ function cupayHandleRequestSignatureResponse(data, payData) {
     let deleteButton = document.createElement('button')
     deleteButton.classList.add('cu-connected-addresses__delete-button');
     deleteButton.onclick = function () {
-        cupayRemoveAddress(data['account'], payData);
+        copper_payment_gatewayRemoveAddress(data['account'], payData);
     }
     deleteButton.innerHTML = 'X';
     listItem.append(deleteButton);
@@ -99,30 +99,30 @@ function cupayHandleRequestSignatureResponse(data, payData) {
     }
 
     cuAddresses.push(data['account']);
-    cupaySetButtonText();
+    copper_payment_gatewaySetButtonText();
 }
 
 /**
  * Remove Ethereum address from account
  * */
-async function cupayRemoveAddress(address, {displayMessages, security, ajaxurl}) {
+async function copper_payment_gatewayRemoveAddress(address, {displayMessages, security, ajaxurl}) {
     const data = {
-        'action': 'cu_remove_eth_address_from_account',
+        'action': 'copper_payment_gateway_remove_eth_address_from_account',
         'address': address,
         'security': security
     };
 
     jQuery.post(ajaxurl, data, function (response) {
-        cupayHandleRemoveAddressResponse(JSON.parse(response), displayMessages);
+        copper_payment_gatewayHandleRemoveAddressResponse(JSON.parse(response), displayMessages);
     });
 }
 
-function cupayHandleRemoveAddressResponse(data, displayMessages) {
+function copper_payment_gatewayHandleRemoveAddressResponse(data, displayMessages) {
     let connectedAddressesElement = document.getElementById('cu-connected-addresses');
-    let logsElement = document.getElementById('cu-pay__logs');
+    let logsElement = document.getElementById('copper-payment-gateway__logs');
     let connectedAddressesList = document.getElementsByClassName('cu-connected-addresses__list')[0];
 
-    if (data['action'] !== 'cu_remove_eth_address_from_account') {
+    if (data['action'] !== 'copper_payment_gateway_remove_eth_address_from_account') {
         return;
     }
 
@@ -155,15 +155,15 @@ function cupayHandleRemoveAddressResponse(data, displayMessages) {
         div.innerHTML = displayMessages['no-addresses'];
         connectedAddressesElement.append(div);
     }
-    if (cuPayHasButton) {
-        cupaySetButtonText();
+    if (copperPaymentGatewayHasButton) {
+        copper_payment_gatewaySetButtonText();
     }
 }
 
 /**
  * Payment
  * */
-function cupayRequestPayment({
+function copper_payment_gatewayRequestPayment({
                                  amount,
                                  displayMessages,
                                  security,
@@ -184,7 +184,7 @@ function cupayRequestPayment({
     } else if (window.web3) {
         window.web3 = new Web3(web3.currentProvider);
     } else {
-        let logsElement = document.getElementById('cu-pay__logs');
+        let logsElement = document.getElementById('copper-payment-gateway__logs');
         logsElement.innerHTML = displayMessages['install-metamask'];
         logsElement.classList.add('has_error');
         return;
@@ -195,7 +195,7 @@ function cupayRequestPayment({
     erc_contract_instance.transfer(targetAddress, amount * 1E18, function (error, result) {
         if (error === null && result !== null) {
             const data = {
-                'action': 'cu_check_transaction',
+                'action': 'copper_payment_gateway_check_transaction',
                 'order_id': orderId,
                 'tx': result,
                 'security': security
@@ -212,14 +212,14 @@ function cupayRequestPayment({
 /**
  * Controller
  * */
-async function cupaySetButtonText() {
-    let message = cuPayData['displayMessages'];
-    let button = document.getElementById('cu-pay__pay-button');
+async function copper_payment_gatewaySetButtonText() {
+    let message = copperPaymentGatewayData['displayMessages'];
+    let button = document.getElementById('copper-payment-gateway__pay-button');
 
     if (!window.ethereum || !window.web3) {
         button.innerHTML = message['pay-order-btn'];
         button.disabled = true;
-        let logs = document.getElementById('cu-pay__logs');
+        let logs = document.getElementById('copper-payment-gateway__logs');
         logs.innerHTML = message['install-metamask'];
         return;
     }
@@ -240,10 +240,10 @@ async function cupaySetButtonText() {
     button.innerHTML = message['pay-order-btn'];
 }
 
-async function cupayShowCurrentAccount() {
+async function copper_payment_gatewayShowCurrentAccount() {
     let accounts = await ethereum.request({method: 'eth_requestAccounts'});
     let currentAccount = accounts[0];
-    let element = document.getElementById('cu-pay__current-provider-account');
+    let element = document.getElementById('copper-payment-gateway__current-provider-account');
     if (!currentAccount) {
         element.innerHTML = '...';
         return;
@@ -252,7 +252,7 @@ async function cupayShowCurrentAccount() {
     element.innerHTML = currentAccount;
 }
 
-async function cupayPay(payData) {
+async function copper_payment_gatewayPay(payData) {
     let {displayMessages} = payData;
     if (window.ethereum) {
         window.web3 = new Web3(ethereum);
@@ -265,7 +265,7 @@ async function cupayPay(payData) {
     } else if (window.web3) {
         window.web3 = new Web3(web3.currentProvider);
     } else {
-        let logsElement = document.getElementById('cu-pay__logs');
+        let logsElement = document.getElementById('copper-payment-gateway__logs');
         logsElement.innerHTML = displayMessages['install-metamask'];
         logsElement.classList.add('has_error');
         return;
@@ -274,8 +274,8 @@ async function cupayPay(payData) {
     let accounts = await ethereum.request({method: 'eth_requestAccounts'});
     let current_account = accounts[0];
     if (!cuAddresses.includes(current_account)) {
-        cupayRequestSignature(payData);
+        copper_payment_gatewayRequestSignature(payData);
     } else {
-        cupayRequestPayment(payData);
+        copper_payment_gatewayRequestPayment(payData);
     }
 }

@@ -1,19 +1,19 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-function cu_uninstall() {
+function copper_payment_gateway_uninstall() {
 	/**
 	 * Delete Payment options
 	 * */
 	$options = [
-		'cu_gas_notice',
-		'cu_copper_target_address',
-		'cu_copper_contract_address',
-		'cu_copper_abi_array',
-		'cu_ethereum_net',
-		'cu_infura_api_id',
-		'cu_infura_api_secret',
-		'cu_infura_api_url',
+		'copper_payment_gateway_gas_notice',
+		'copper_payment_gateway_copper_target_address',
+		'copper_payment_gateway_copper_contract_address',
+		'copper_payment_gateway_copper_abi_array',
+		'copper_payment_gateway_ethereum_net',
+		'copper_payment_gateway_infura_api_id',
+		'copper_payment_gateway_infura_api_secret',
+		'copper_payment_gateway_infura_api_url',
 	];
 
 	foreach ( $options as $option_name ) {
@@ -24,14 +24,14 @@ function cu_uninstall() {
 	 * Delete User Metas
 	 * */
 	$args = array(
-		'meta_key' => 'cu_eth_addresses',
+		'meta_key' => 'copper_payment_gateway_eth_addresses',
 		'fields'   => 'ids'
 	);
 
 	$user_ids = get_users( $args );
 	foreach ( $user_ids as $user ) {
 		$user_id = (int) $user;
-		delete_user_meta( $user_id, 'cu_eth_addresses' );
+		delete_user_meta( $user_id, 'copper_payment_gateway_eth_addresses' );
 	}
 
 	/**
@@ -40,12 +40,12 @@ function cu_uninstall() {
 	$query = new WC_Order_Query( [
 		'limit'    => - 1,
 		'return'   => 'ids',
-		'meta_key' => 'cu_tx'
+		'meta_key' => 'copper_payment_gateway_tx'
 	] );
 	try {
 		$order_ids = $query->get_orders();
 		foreach ( $order_ids as $id ) {
-			delete_post_meta( 73, 'cu_tx' );
+			delete_post_meta( 73, 'copper_payment_gateway_tx' );
 		}
 	} catch ( Exception $e ) {
 	}
