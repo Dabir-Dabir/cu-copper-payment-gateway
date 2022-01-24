@@ -13,6 +13,7 @@ class Copper_Payment_Gateway_WC_Gateway extends WC_Payment_Gateway {
 	private string $abi_array;
 	private string $contract_address;
 	private string $net;
+	private string $gas_notice;
 	private string $target_address;
 	private string $api_id;
 	private string $api_secret;
@@ -250,11 +251,7 @@ class Copper_Payment_Gateway_WC_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
-	public function get_icon() {
-		return '<img src="' . COPPER_PAYMENT_GATEWAY_URL . '/assets/img/cu-icon.png' . '" alt="' . esc_attr( $this->get_title() ) . '" />';
-	}
-
-	public function save_fields() {
+	public function save_fields(): void {
 		if ( $_POST['_wp_http_referer'] !== '/wp-admin/admin.php?page=wc-settings&tab=checkout&section=copper_payment_gateway_erc20' ) {
 			return;
 		}

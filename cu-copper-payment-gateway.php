@@ -71,7 +71,7 @@ class CuCopperPaymentGateway {
 	 * Load JavaScript for payment at the front desk
 	 */
 	public function register_payment_scripts(): void {
-		wp_register_style( 'copper_payment_gateway_style', COPPER_PAYMENT_GATEWAY_URL . '/assets/css/copper_payment_gateway.css' );
+		wp_register_style( 'copper_payment_gateway_style', COPPER_PAYMENT_GATEWAY_URL . '/assets/css/copper-payment-gateway.css' );
 
 		wp_register_script( 'copper_payment_gateway_web3', COPPER_PAYMENT_GATEWAY_URL . '/assets/js/web3.min.js', array( 'jquery' ), 1.1, true );
 		wp_register_script( 'copper_payment_gateway_payment', COPPER_PAYMENT_GATEWAY_URL . '/assets/js/payment.js', array(

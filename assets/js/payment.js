@@ -103,7 +103,7 @@ function copper_payment_gatewayHandleRequestSignatureResponse(data, payData) {
 }
 
 /**
- * Remove Ethereum address from account
+ * Remove Ethereum account address
  * */
 async function copper_payment_gatewayRemoveAddress(address, {displayMessages, security, ajaxurl}) {
     const data = {
