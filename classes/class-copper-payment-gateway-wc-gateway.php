@@ -86,11 +86,10 @@ class Copper_Payment_Gateway_WC_Gateway extends WC_Payment_Gateway {
 	 * Setup settings
 	 */
 	public function init_form_fields(): void {
-		/*ToDo To be changed*/
-		$main_net_url     = 'https://ropsten.etherscan.io/address/0xe93B988735f39647F4c5Fca724E3CEe543B386A9';
-		$main_net_link    = sprintf( wp_kses( __( 'In Production mode it usses Ethereum Main Network. You can see the token <a href="%s">contract here</a>.', 'cu-copper-payment-gateway' ), array( 'a' => array( 'href' => array() ) ) ), esc_url( $main_net_url ) );
+		$main_net_url     = 'https://etherscan.io/address/0x36ed6a2556e1bad716e29747f9a1d4a790fa48aa';
+		$main_net_link    = sprintf( wp_kses( __( 'In Production mode it usses Ethereum Main Network. You can see the token <a href="%s" target="_blank">contract here</a>.', 'cu-copper-payment-gateway' ), array( 'a' => array( 'href' => array() ) ) ), esc_url( $main_net_url ) );
 		$ropsten_net_url  = 'https://ropsten.etherscan.io/address/0xe93B988735f39647F4c5Fca724E3CEe543B386A9';
-		$ropsten_net_link = sprintf( wp_kses( __( 'In Test mode it usses Ethereum Ropsten Network. You can see the token <a href="%s">contract here</a>.', 'cu-copper-payment-gateway' ), array( 'a' => array( 'href' => array() ) ) ), esc_url( $ropsten_net_url ) );
+		$ropsten_net_link = sprintf( wp_kses( __( 'In Test mode it usses Ethereum Ropsten Network. You can see the token <a href="%s" target="_blank">contract here</a>.', 'cu-copper-payment-gateway' ), array( 'a' => array( 'href' => array() ) ) ), esc_url( $ropsten_net_url ) );
 
 		$information_description = $main_net_link . '<br>' . $ropsten_net_link;
 		$uninstall_description   = wp_kses( __( '<b style="color:red">Be very carefull with this checkbox!</b>', 'cu-copper-payment-gateway' ), array( 'b' => array( 'style' => array() ) ) ) . ' ' . __( 'It will dlelete all saved configurations for this payment gateway. Also, it will delete all Ethereum Addresses bound to Accounts and TXs included in orders.', 'cu-copper-payment-gateway' );

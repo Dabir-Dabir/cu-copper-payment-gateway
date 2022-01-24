@@ -1,7 +1,7 @@
 /**
  * Bond Ethereum address to account
  * */
-async function copper_payment_gatewayRequestSignature(payData) {
+async function copperPaymentGatewayRequestSignature(payData) {
     let {message, displayMessages, security, ajaxurl} = payData;
     if (window.ethereum) {
         window.web3 = new Web3(ethereum);
@@ -42,11 +42,11 @@ async function copper_payment_gatewayRequestSignature(payData) {
     };
 
     jQuery.post(ajaxurl, data, function (response) {
-        copper_payment_gatewayHandleRequestSignatureResponse(JSON.parse(response), payData);
+        copperPaymentGatewayHandleRequestSignatureResponse(JSON.parse(response), payData);
     });
 }
 
-function copper_payment_gatewayHandleRequestSignatureResponse(data, payData) {
+function copperPaymentGatewayHandleRequestSignatureResponse(data, payData) {
     let logsElement = document.getElementById('copper-payment-gateway__logs');
     let connectedAddresses = document.getElementById('cu-connected-addresses');
     let connectedAddressesList = document.getElementsByClassName('cu-connected-addresses__list')[0];
@@ -80,12 +80,12 @@ function copper_payment_gatewayHandleRequestSignatureResponse(data, payData) {
     let deleteButton = document.createElement('button')
     deleteButton.classList.add('cu-connected-addresses__delete-button');
     deleteButton.onclick = function () {
-        copper_payment_gatewayRemoveAddress(data['account'], payData);
+        copperPaymentGatewayRemoveAddress(data['account'], payData);
     }
     deleteButton.innerHTML = 'X';
     listItem.append(deleteButton);
 
-    if (cuAddresses.length > 0) {
+    if (copperPaymentGatewayAddresses.length > 0) {
         connectedAddressesList.append(listItem);
     } else {
         const node = document.getElementsByClassName('cu-connected-addresses__empty')[0];
@@ -98,14 +98,14 @@ function copper_payment_gatewayHandleRequestSignatureResponse(data, payData) {
         connectedAddresses.append(list);
     }
 
-    cuAddresses.push(data['account']);
-    copper_payment_gatewaySetButtonText();
+    copperPaymentGatewayAddresses.push(data['account']);
+    copperPaymentGatewaySetButtonText();
 }
 
 /**
  * Remove Ethereum account address
  * */
-async function copper_payment_gatewayRemoveAddress(address, {displayMessages, security, ajaxurl}) {
+async function copperPaymentGatewayRemoveAddress(address, {displayMessages, security, ajaxurl}) {
     const data = {
         'action': 'copper_payment_gateway_remove_eth_address_from_account',
         'address': address,
@@ -113,11 +113,11 @@ async function copper_payment_gatewayRemoveAddress(address, {displayMessages, se
     };
 
     jQuery.post(ajaxurl, data, function (response) {
-        copper_payment_gatewayHandleRemoveAddressResponse(JSON.parse(response), displayMessages);
+        copperPaymentGatewayHandleRemoveAddressResponse(JSON.parse(response), displayMessages);
     });
 }
 
-function copper_payment_gatewayHandleRemoveAddressResponse(data, displayMessages) {
+function copperPaymentGatewayHandleRemoveAddressResponse(data, displayMessages) {
     let connectedAddressesElement = document.getElementById('cu-connected-addresses');
     let logsElement = document.getElementById('copper-payment-gateway__logs');
     let connectedAddressesList = document.getElementsByClassName('cu-connected-addresses__list')[0];
@@ -142,12 +142,12 @@ function copper_payment_gatewayHandleRemoveAddressResponse(data, displayMessages
     const node = document.getElementById(nodeId);
     node.parentNode.removeChild(node);
 
-    const index = cuAddresses.indexOf(data['account']);
+    const index = copperPaymentGatewayAddresses.indexOf(data['account']);
     if (index > -1) {
-        cuAddresses.splice(index, 1);
+        copperPaymentGatewayAddresses.splice(index, 1);
     }
 
-    if (cuAddresses.length < 1) {
+    if (copperPaymentGatewayAddresses.length < 1) {
         connectedAddressesElement.removeChild(connectedAddressesList);
 
         let div = document.createElement('div')
@@ -156,14 +156,14 @@ function copper_payment_gatewayHandleRemoveAddressResponse(data, displayMessages
         connectedAddressesElement.append(div);
     }
     if (copperPaymentGatewayHasButton) {
-        copper_payment_gatewaySetButtonText();
+        copperPaymentGatewaySetButtonText();
     }
 }
 
 /**
  * Payment
  * */
-function copper_payment_gatewayRequestPayment({
+function copperPaymentGatewayRequestPayment({
                                  amount,
                                  displayMessages,
                                  security,
@@ -212,7 +212,7 @@ function copper_payment_gatewayRequestPayment({
 /**
  * Controller
  * */
-async function copper_payment_gatewaySetButtonText() {
+async function copperPaymentGatewaySetButtonText() {
     let message = copperPaymentGatewayData['displayMessages'];
     let button = document.getElementById('copper-payment-gateway__pay-button');
 
@@ -232,7 +232,7 @@ async function copper_payment_gatewaySetButtonText() {
         return;
     }
 
-    if (!cuAddresses.includes(currentAccount)) {
+    if (!copperPaymentGatewayAddresses.includes(currentAccount)) {
         button.innerHTML = message['bound-account-btn'];
         return;
     }
@@ -240,7 +240,7 @@ async function copper_payment_gatewaySetButtonText() {
     button.innerHTML = message['pay-order-btn'];
 }
 
-async function copper_payment_gatewayShowCurrentAccount() {
+async function copperPaymentGatewayShowCurrentAccount() {
     let accounts = await ethereum.request({method: 'eth_requestAccounts'});
     let currentAccount = accounts[0];
     let element = document.getElementById('copper-payment-gateway__current-provider-account');
@@ -252,7 +252,7 @@ async function copper_payment_gatewayShowCurrentAccount() {
     element.innerHTML = currentAccount;
 }
 
-async function copper_payment_gatewayPay(payData) {
+async function copperPaymentGatewayPay(payData) {
     let {displayMessages} = payData;
     if (window.ethereum) {
         window.web3 = new Web3(ethereum);
@@ -273,9 +273,9 @@ async function copper_payment_gatewayPay(payData) {
 
     let accounts = await ethereum.request({method: 'eth_requestAccounts'});
     let current_account = accounts[0];
-    if (!cuAddresses.includes(current_account)) {
-        await copper_payment_gatewayRequestSignature(payData);
+    if (!copperPaymentGatewayAddresses.includes(current_account)) {
+        await copperPaymentGatewayRequestSignature(payData);
     } else {
-        copper_payment_gatewayRequestPayment(payData);
+        copperPaymentGatewayRequestPayment(payData);
     }
 }

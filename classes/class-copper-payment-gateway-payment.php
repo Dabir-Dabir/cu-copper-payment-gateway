@@ -31,21 +31,12 @@ class Copper_Payment_Gateway_Payment {
 
 	public function send_infura_request( string $method, array $params = [] ) {
 		$api_url = "https://" . get_option( 'copper_payment_gateway_ethereum_net' ) . ".infura.io/v3/" . get_option( 'copper_payment_gateway_infura_api_id' );
-		$ch      = curl_init( $api_url );
-		$data    = array(
-			'jsonrpc' => '2.0',
-			'id'      => 1,
+		$args    = array(
 			'method'  => $method,
 			'params'  => $params,
 		);
-		$payload = json_encode( $data );
-
-		/* cUrl request */
-		curl_setopt( $ch, CURLOPT_POSTFIELDS, $payload );
-		curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'Content-Type: application/json' ) );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-		$result = curl_exec( $ch );
-		curl_close( $ch );
+		$response = wp_remote_get( $api_url, $args );
+		$result = wp_remote_retrieve_response_code( $response );
 
 		try {
 			$res = json_decode( $result, true, 512, JSON_THROW_ON_ERROR );

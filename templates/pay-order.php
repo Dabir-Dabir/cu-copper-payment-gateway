@@ -2,23 +2,23 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 <script>
-	let cuAddresses = [];
+	let copperPaymentGatewayAddresses = [];
 	<?php
 	$copper_payment_gateway_addresses = get_user_meta( get_current_user_id(), 'copper_payment_gateway_eth_addresses', true );
 	$copper_payment_gateway_no_addresses_txt = __( 'You didn\'t add any address', 'cu-copper-payment-gateway' );
 	if ( is_array( $copper_payment_gateway_addresses ) ) : ?>
-	cuAddresses = <?php echo json_encode( $copper_payment_gateway_addresses ) ?>;
+	copperPaymentGatewayAddresses = <?php echo json_encode( $copper_payment_gateway_addresses ) ?>;
 	<?php endif; ?>
 
 	let copperPaymentGatewayHasButton = false;
 	const copperPaymentGatewayData = {
 		"security": "<?php echo wp_create_nonce( "copper_payment_gateway_security" ); ?>",
-		"message": "<?php echo get_user_meta( get_current_user_id(), 'copper_payment_gateway_eth_token', true ) ?>",
-		"addresses": cuAddresses,
+		"message": "<?php echo esc_attr(get_user_meta( get_current_user_id(), 'copper_payment_gateway_eth_token', true )) ?>",
+		"addresses": copperPaymentGatewayAddresses,
 		"ajaxurl": "/wp-admin/admin-ajax.php",
 		"displayMessages": {
 			"install-metamask": "<?php _e( 'Please Install MetaMask at First', 'cu-copper-payment-gateway' ) ?>",
-			"no-addresses": "<?php echo esc_html( $copper_payment_gateway_no_addresses_txt ) ?>",
+			"no-addresses": "<?php echo esc_attr( $copper_payment_gateway_no_addresses_txt ) ?>",
 			"connect-metamask-btn": "<?php _e( 'Connetc MetaMask', 'cu-copper-payment-gateway' ) ?>",
 			"install-metamask-btn": "<?php _e( 'Install MetaMask', 'cu-copper-payment-gateway' ) ?>",
 			"bound-account-btn": "<?php _e( 'Bound Account', 'cu-copper-payment-gateway' ) ?>",
@@ -32,21 +32,21 @@ defined( 'ABSPATH' ) || exit;
 	copperPaymentGatewayHasButton = true;
 	copperPaymentGatewayData.amount = <?php echo esc_html( $order->get_total() ) ?>;
 	copperPaymentGatewayData.orderId = <?php echo esc_html( $order_id ) ?>;
-	copperPaymentGatewayData.contractAddress = "<?php echo get_option( 'copper_payment_gateway_copper_contract_address' ) ?>";
-	copperPaymentGatewayData.abiArray = <?php echo get_option( 'copper_payment_gateway_copper_abi_array' ) ?>;
-	copperPaymentGatewayData.targetAddress = "<?php echo get_option( 'copper_payment_gateway_copper_target_address' ) ?>";
+	copperPaymentGatewayData.contractAddress = "<?php echo esc_attr(get_option( 'copper_payment_gateway_copper_contract_address' )) ?>";
+	copperPaymentGatewayData.abiArray = <?php echo esc_attr(get_option( 'copper_payment_gateway_copper_abi_array' )) ?>;
+	copperPaymentGatewayData.targetAddress = "<?php echo esc_attr(get_option( 'copper_payment_gateway_copper_target_address' )) ?>";
 
 
 	jQuery(window).load(() => {
 		if (window.ethereum) {
-			copper_payment_gatewayShowCurrentAccount();
+			copperPaymentGatewayShowCurrentAccount();
 		}
-		copper_payment_gatewaySetButtonText();
+		copperPaymentGatewaySetButtonText();
 
 		if (window.ethereum) {
 			window.ethereum.on('accountsChanged', function (accounts) {
-				copper_payment_gatewayShowCurrentAccount();
-				copper_payment_gatewaySetButtonText();
+				copperPaymentGatewayShowCurrentAccount();
+				copperPaymentGatewaySetButtonText();
 			});
 		}
 	});
@@ -64,7 +64,7 @@ defined( 'ABSPATH' ) || exit;
         <h6 class="cu-connected-addresses__gas-notice"><?php echo esc_html( get_option( 'copper_payment_gateway_gas_notice' ) ) ?></h6>
 
         <button class="copper-payment-gateway__pay-button" id="copper-payment-gateway__pay-button"
-                onclick="copper_payment_gatewayPay(copperPaymentGatewayData)">
+                onclick="copperPaymentGatewayPay(copperPaymentGatewayData)">
 			<?php _e( 'Connect MetaMask', 'cu-copper-payment-gateway' ) ?>
         </button>
 	<?php endif; ?>
@@ -81,7 +81,7 @@ defined( 'ABSPATH' ) || exit;
                         data-cu-address="<?php echo esc_html( $address ) ?>">
                         <span class="cu-connected-addresses__span"><?php echo esc_html( $address ) ?></span>
                         <button class="cu-connected-addresses__delete-button"
-                                onclick="copper_payment_gatewayRemoveAddress('<?php echo esc_html( $address ) ?>',copperPaymentGatewayData)">
+                                onclick="copperPaymentGatewayRemoveAddress('<?php echo esc_html( $address ) ?>',copperPaymentGatewayData)">
                             X
                         </button>
                     </li>
